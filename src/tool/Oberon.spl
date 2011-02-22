@@ -1,8 +1,105 @@
 grammar ee.cyber.simplicitas.oberonexample.Oberon;
 
-Program: 'program' Id;
+Module:
+    "MODULE" name1=Id ";"
+        decl=Declarations
+        ("BEGIN" 
+            StatementSequence)?
+    "END" name2=Id ".";
 
-terminal Id: ('a'..'z'|'A'..'Z'|'_') ('a'..'z'|'A'..'Z'|'_'|'0'..'9')*;
+StatementSequence: first=Statement (";" rest=Statement)*;
+
+ConstantDef: name=Id EqOp CompExpr ";";
+VarDef: vars=IdentList ":" varType=Type ";";
+ProcedureDecl: 
+    "PROCEDURE" name=Id
+        ("(" (firstParam=FormalParam (";" rest=FormalParam)*)? ")")?
+    ";"
+    decl=Declarations
+    ("BEGIN"
+        body=StatementSequence)?
+    "END" name2=Id;
+FormalParam: pVar="VAR"? ids=IdentList ":" pType=Type;
+
+Declarations:
+    ("CONST" 
+        consts=ConstantDef)?
+    ("TYPE" 
+        /* TODO */)?
+    ("VAR" 
+        vars=VarDef)?
+    (procedures=ProcedureDecl ";")*;
+
+// factor = ident selector | number | "(" expression ")" | "~" factor.
+// term = factor {("*" | "DIV" | "MOD" | "&") factor}.
+// SimpleExpression = ["+"|"-"] term {("+"|"-" | "OR") term}.
+// expression = SimpleExpression
+// [("=" | "#" | "<" | "<=" | ">" | ">=") SimpleExpression].
+
+CompExpr returns Expression: first=SimpleExpr (op=CompOp rest=SimpleExpr)?;
+CompOp: EqOp | "#" | "<" | "<=" | ">" | ">=";
+terminal EqOp: "=";
+option SimpleExpr: PosExpr | NegExpr | PlusExpr;
+
+PosExpr: PlusOp PlusExpr;
+terminal PlusOp: "+";
+terminal MinusOp: "-";
+terminal OrOp: "OR";
+NegExpr: MinusOp PlusExpr;
+PlusExpr: first=Term (op=PlusExprOp rest=Term)*;
+option PlusExprOp: PlusOp | MinusOp | OrOp;
+Term: first=Factor (op=TermOp rest=Factor)*;
+terminal TermOp: "*" | "DIV" | "MOD" | "&";
+option Factor returns Expression:
+    SelectorExpr
+    | NumberLit
+    | ParenExpr
+    | NotExpr; 
+
+// selector = {"." ident | "[" expression "]"}.
+SelectorExpr: id=Id selector=SelectorPart*;
+option SelectorPart: RecordSelector | ArraySelector;
+RecordSelector: "." Id;
+ArraySelector: "[" expr=PlusExpr "]"; 
+
+terminal NumberLit: ('0' .. '9')+;
+ParenExpr returns Expression {expr}: "(" expr=CompExpr ")";
+NotExpr: "~" Factor;
+
+// TODO
+// ArrayType = "ARRAY" expression "OF" type.
+// FieldList = [IdentList ":" type].
+// RecordType = "RECORD" FieldList {";" FieldList} "END".
+// type = ident | ArrayType | RecordType.
+Type: Id;
+IdentList: first=Id ("," rest=Id)*;
+
+option Statement:
+    Assignment
+    | ProcedureCall
+    | IfStatement
+    | WhileStatement; 
+
+Assignment: SelectorExpr ":=" CompExpr;
+ProcedureCall: 
+    proc=Id /* TODO: Selector* */  // WTF is selector doing here?
+        ("(" first=CompExpr ("," rest=CompExpr)* ")")?; 
+
+IfStatement:
+    "IF" cond=CompExpr "THEN"
+        ifStmt=StatementSequence
+    ("ELSIF" elsifCond=CompExpr "THEN"
+        elsifStmt=StatementSequence)*
+    ("ELSE"
+        elseStmt=StatementSequence)?
+    "END";
+    
+WhileStatement: 
+    "WHILE" cond=CompExpr "DO" 
+        body=StatementSequence
+    "END";
+
+terminal Id: ('a'..'z'|'A'..'Z') ('a'..'z'|'A'..'Z'|'0'..'9')*;
 fragment MlComment: '/*' (~'*' | '*' ~'/')* '*/';
 fragment SlComment: '//' ~('\n'|'\r')*;
 hidden terminal WS: (' '|'\t'|'\r'|'\n'|SlComment|MlComment)+;

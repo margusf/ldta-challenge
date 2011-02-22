@@ -1,14 +1,11 @@
 package ee.cyber.simplicitas.oberonexample;
 
-import ee.cyber.simplicitas.{GeneratorBase, MainBase}
+import ee.cyber.simplicitas.{GeneratorBase, MainBase, PrettyPrint}
 
 class OberonGenerator(destDir: String) 
         extends GeneratorBase(destDir) {
-  val templates = getTemplates("Oberon.stg")
-    
-  def generate(tree: Program) {
-    val args = tree.toJavaMap()
-    writeFile("GeneratedProgram.java", templates.getInstanceOf("program", args))
+  def generate(tree: Module) {
+    PrettyPrint.prettyPrint(tree)
   }
 }
   
