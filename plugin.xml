@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension point="org.eclipse.imp.runtime.languageDescription">
+      <language extensions="obr" description="Oberon0 example for LDTA tool challenge"
+                natureID="ee.cyber.simplicitas.oberonexample" language="oberon0_example"/>
+   </extension>
+   <extension id="oberon0_example.parserWrapper"
+              name="Oberon0 example for LDTA tool challenge Parser Wrapper"
+              point="org.eclipse.imp.runtime.parser">
+      <parserWrapper
+            class="ee.cyber.simplicitas.oberonexample.OberonParseController"
+            language="oberon0_example"/>
+   </extension>
+   <extension point="org.eclipse.imp.runtime.tokenColorer">
+      <tokenColorer class="ee.cyber.simplicitas.oberonexample.OberonTokenColorer"
+                    language="oberon0_example"/>
+   </extension>
+   <extension point="org.eclipse.imp.runtime.modelTreeBuilder">
+      <treeBuilder
+            class="ee.cyber.simplicitas.oberonexample.OberonTreeModelBuilder"
+            language="oberon0_example">
+      </treeBuilder>
+   </extension>
+   <extension point="org.eclipse.imp.runtime.labelProvider">
+   <labelProvider class="ee.cyber.simplicitas.oberonexample.OberonLabelProvider"
+   language="oberon0_example"/>
+   </extension>
+   <extension point="org.eclipse.imp.runtime.referenceResolvers">
+   <referenceResolver class="ee.cyber.simplicitas.oberonexample.OberonReferenceResolver"
+   language="oberon0_example"/>
+   </extension>
+   <extension point="org.eclipse.imp.runtime.foldingUpdater">
+   <foldingUpdater class="ee.cyber.simplicitas.oberonexample.OberonFoldingUpdater"
+   language="oberon0_example"/>
+   </extension>
+   <extension point="org.eclipse.imp.runtime.documentationProvider">
+   <docProvider class="ee.cyber.simplicitas.oberonexample.OberonDocumentationProvider"
+   language="oberon0_example"/>
+   </extension>
+   <extension id="oberon0_example.hoverHelper"
+              name="Oberon0 example for LDTA tool challenge Hover Helper"
+              point="org.eclipse.imp.runtime.hoverHelper">
+      <hoverHelper class="ee.cyber.simplicitas.imp.HoverHelper"
+                 language="oberon0_example"/>
+   </extension>
+   <extension point="org.eclipse.imp.runtime.contentProposer">
+      <proposer class="ee.cyber.simplicitas.oberonexample.OberonContentProposer"
+                language="oberon0_example"/>
+   </extension>
+   <extension point="org.eclipse.imp.runtime.markOccurrences">
+      <occurrenceMarker class="ee.cyber.simplicitas.oberonexample.OberonOccurrenceMarker"
+                        language="oberon0_example"/>
+   </extension>
+   
+   <extension point="org.eclipse.ui.preferencePages">
+      <page class="ee.cyber.simplicitas.oberonexample.OberonPreferencePage"
+            id="ee.cyber.simplicitas.oberonexample.OberonPreferencePage"
+            name="Oberon0 example for LDTA tool challenge Preferences">
+      </page>
+   </extension>
+   <extension point="org.eclipse.core.runtime.preferences">
+      <initializer class="ee.cyber.simplicitas.oberonexample.OberonPreferenceInitializer"/>
+   </extension>
+   
+   <extension
+          point="org.eclipse.ui.popupMenus">
+       <objectContribution
+             id="oberon0_example.generatorPopUp"
+             nameFilter="*.obr"
+             objectClass="org.eclipse.core.resources.IFile">
+          <action
+                class="ee.cyber.simplicitas.oberonexample.OberonGenerateAction"
+                enablesFor="1"
+                id="ee.cyber.simplicitas.oberonexample.OberonGenerateAction"
+                label="Generate"
+                menubarPath="additions"
+                tooltip="Generate">
+          </action>
+       </objectContribution>
+    </extension>
+</plugin>
