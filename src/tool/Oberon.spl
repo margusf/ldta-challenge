@@ -23,11 +23,11 @@ FormalParam: pVar="VAR"? ids=IdentList ":" pType=Type;
 
 Declarations:
     ("CONST" 
-        consts=ConstantDef)?
+        consts=ConstantDef*)?
     ("TYPE" 
         /* TODO */)?
     ("VAR" 
-        vars=VarDef)?
+        vars=VarDef*)?
     (procedures=ProcedureDecl ";")*;
 
 // factor = ident selector | number | "(" expression ")" | "~" factor.
@@ -71,7 +71,11 @@ NotExpr: "~" Factor;
 // FieldList = [IdentList ":" type].
 // RecordType = "RECORD" FieldList {";" FieldList} "END".
 // type = ident | ArrayType | RecordType.
-Type: Id;
+option Type: Id | ArrayType | RecordType;
+ArrayType: "ARRAY" count=PlusExpr "OF" baseType=Type;
+RecordType: "RECORD" (first=RecordField (";" rest=RecordField)*)? "END";
+RecordField: idents=IdentList ":" fieldType=Type;
+
 IdentList: first=Id ("," rest=Id)*;
 
 option Statement:

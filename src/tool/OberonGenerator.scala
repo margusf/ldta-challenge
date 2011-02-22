@@ -5,7 +5,7 @@ import ee.cyber.simplicitas.{GeneratorBase, MainBase, PrettyPrint}
 class OberonGenerator(destDir: String) 
         extends GeneratorBase(destDir) {
   def generate(tree: Module) {
-    PrettyPrint.prettyPrint(tree)
+    println(PrettyPrint.prettyPrint(tree))
   }
 }
   
