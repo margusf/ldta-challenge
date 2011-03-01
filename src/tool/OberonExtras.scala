@@ -25,6 +25,17 @@ object BinaryOp extends Enumeration {
     val Or = Value("OR")
 }
 
+case class Unary(op: UnaryOp.Type, arg: Expression) extends Expression {
+    def childrenNames= Array("op", "arg")
+}
+
+object UnaryOp extends Enumeration {
+    type Type = Value
+
+    val Pos = Value("+")
+    val Neg = Value("-")
+    val Not = Value("~")
+}
 
 object OberonExtras {
     type WithText = {
@@ -36,4 +47,22 @@ object OberonExtras {
             left
         else
             Binary(BinaryOp.withName(foo.text), left, right)
+
+    def makeBinary(ops: List[WithText], args: List[Expression]) = {
+        def loop(left: Expression, right: List[Expression],
+                 ops: List[BinaryOp.Type]): Expression =
+            (right, ops) match {
+                case (rh :: rt, oh :: ot) =>
+                    loop(
+                        Binary(oh, left, rh).setStart(left).setEnd(rh),
+                        rt, ot)
+                case (Nil, Nil) =>
+                    left
+                case _ =>
+                    throw new Exception("Cannot happen")
+            }
+
+        loop(args.head, args.tail,
+            ops.map((op: WithText) => BinaryOp.withName(op.text)))
+    }
 }

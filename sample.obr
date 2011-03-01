@@ -1,4 +1,10 @@
 MODULE Sample;
+	PROCEDURE Foo(x, y: INTEGER);
+		VAR z: INTEGER;
+	BEGIN
+		z := 1 + 2 + 3 + 4 + 5
+	END Foo;
+
     PROCEDURE Multiply;
         VAR x, y, z: INTEGER;
     BEGIN Read(x); Read(y); z := 0;
