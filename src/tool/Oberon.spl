@@ -1,9 +1,13 @@
 grammar ee.cyber.simplicitas.oberonexample.Oberon;
 
+scalaheader {
+import OberonExtras._
+}
+
 Module:
     "MODULE" name1=Id ";"
         decl=Declarations
-        ("BEGIN" 
+        ("BEGIN"
             StatementSequence)?
     "END" name2=Id ".";
 
@@ -11,7 +15,7 @@ StatementSequence: first=Statement (";" rest=Statement)*;
 
 ConstantDef: name=Id EqOp CompExpr ";";
 VarDef: vars=IdentList ":" varType=Type ";";
-ProcedureDecl: 
+ProcedureDecl:
     "PROCEDURE" name=Id
         ("(" (firstParam=FormalParam (";" rest=FormalParam)*)? ")")?
     ";"
@@ -22,11 +26,11 @@ ProcedureDecl:
 FormalParam: pVar="VAR"? ids=IdentList ":" pType=Type;
 
 Declarations:
-    ("CONST" 
+    ("CONST"
         consts=ConstantDef*)?
-    ("TYPE" 
+    ("TYPE"
         /* TODO */)?
-    ("VAR" 
+    ("VAR"
         vars=VarDef*)?
     (procedures=ProcedureDecl ";")*;
 
@@ -36,32 +40,42 @@ Declarations:
 // expression = SimpleExpression
 // [("=" | "#" | "<" | "<=" | ">" | ">=") SimpleExpression].
 
-CompExpr returns Expression: first=SimpleExpr (op=CompOp rest=SimpleExpr)?;
-CompOp: EqOp | "#" | "<" | "<=" | ">" | ">=";
+CompExpr
+    returns Expression {makeBinary(op, left, right)}
+    : left=SimpleExpr (op=CompOp right=SimpleExpr)?;
+option CompOp {def text: String}: EqOp | OtherCompOps;
 terminal EqOp: "=";
-option SimpleExpr: PosExpr | NegExpr | PlusExpr;
+terminal OtherCompOps: "#" | "<" | "<=" | ">" | ">=";
 
-PosExpr: PlusOp PlusExpr;
+// TODO: fix issue 2869
+option SimpleExpr returns Expression: PosExpr | NegExpr | PlusExpr;
+
+PosExpr returns Expression: PlusOp PlusExpr;
 terminal PlusOp: "+";
 terminal MinusOp: "-";
 terminal OrOp: "OR";
-NegExpr: MinusOp PlusExpr;
-PlusExpr: first=Term (op=PlusExprOp rest=Term)*;
+NegExpr
+    returns Expression
+    : MinusOp PlusExpr;
+PlusExpr
+    returns Expression
+    : first=Term (op=PlusExprOp rest=Term)*;
 option PlusExprOp: PlusOp | MinusOp | OrOp;
+
 Term: first=Factor (op=TermOp rest=Factor)*;
 terminal TermOp: "*" | "DIV" | "MOD" | "&";
 option Factor returns Expression:
     SelectorExpr
     | NumberLit
     | ParenExpr
-    | NotExpr; 
+    | NotExpr;
 
-SelectorExpr 
+SelectorExpr
 //    returns Expression {if (selector.isEmpty) id else _self}
     : id=Id selector=SelectorPart*;
 option SelectorPart: RecordSelector | ArraySelector;
 RecordSelector: "." Id;
-ArraySelector: "[" index=PlusExpr "]"; 
+ArraySelector: "[" index=PlusExpr "]";
 
 terminal NumberLit: ('0' .. '9')+;
 ParenExpr returns Expression {expr}: "(" expr=CompExpr ")";
@@ -78,12 +92,12 @@ option Statement:
     Assignment
     | ProcedureCall
     | IfStatement
-    | WhileStatement; 
+    | WhileStatement;
 
 Assignment: left=SelectorExpr ":=" right=CompExpr;
-ProcedureCall: 
+ProcedureCall:
     proc=Id /* TODO: Selector* */  // WTF is selector doing here?
-        ("(" first=CompExpr ("," rest=CompExpr)* ")")?; 
+        ("(" first=CompExpr ("," rest=CompExpr)* ")")?;
 
 IfStatement:
     "IF" cond=CompExpr "THEN"
@@ -93,9 +107,9 @@ IfStatement:
     ("ELSE"
         elseStmt=StatementSequence)?
     "END";
-    
-WhileStatement: 
-    "WHILE" cond=CompExpr "DO" 
+
+WhileStatement:
+    "WHILE" cond=CompExpr "DO"
         body=StatementSequence
     "END";
 
