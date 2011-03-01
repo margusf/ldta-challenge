@@ -71,14 +71,18 @@ Term
     : first=Factor (ops=TermOp rest=Factor)*;
 terminal TermOp: "*" | "DIV" | "MOD" | "&";
 option Factor returns Expression:
-    SelectorExpr
+    Lhs
     | NumberLit
     | ParenExpr
     | NotExpr;
 
+option Lhs returns Expression:
+    Id  // This is necessary to make Id inherit from Expression
+    | SelectorExpr;
+
 SelectorExpr
-//    returns Expression {if (selector.isEmpty) id else _self}
-    : id=Id selector=SelectorPart*;
+    returns Expression {makeSelector(id, selectors)}
+    : id=Id selectors=SelectorPart+;
 option SelectorPart: RecordSelector | ArraySelector;
 RecordSelector: "." Id;
 ArraySelector: "[" index=PlusExpr "]";
@@ -102,7 +106,7 @@ option Statement:
     | IfStatement
     | WhileStatement;
 
-Assignment: left=SelectorExpr ":=" right=CompExpr;
+Assignment: left=Lhs ":=" right=CompExpr;
 ProcedureCall:
     proc=Id /* TODO: Selector* */  // WTF is selector doing here?
         ("(" first=CompExpr ("," rest=CompExpr)* ")")?;

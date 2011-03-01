@@ -26,7 +26,7 @@ object BinaryOp extends Enumeration {
 }
 
 case class Unary(op: UnaryOp.Type, arg: Expression) extends Expression {
-    def childrenNames= Array("op", "arg")
+    def childrenNames = Array("op", "arg")
 }
 
 object UnaryOp extends Enumeration {
@@ -35,6 +35,16 @@ object UnaryOp extends Enumeration {
     val Pos = Value("+")
     val Neg = Value("-")
     val Not = Value("~")
+}
+
+case class ArrayAccess(array: Expression, index: Expression)
+        extends Expression {
+    def childrenNames = Array("array", "index")
+}
+
+case class RecordAccess(record: Expression, field: Id)
+        extends Expression {
+    def childrenNames = Array("record", "field")
 }
 
 object OberonExtras {
@@ -64,5 +74,17 @@ object OberonExtras {
 
         loop(args.head, args.tail,
             ops.map((op: WithText) => BinaryOp.withName(op.text)))
+    }
+
+    def makeSelector(id: Expression, selectors: List[SelectorPart]) = {
+        def doSelector(body: Expression, selector: SelectorPart) =
+            selector match {
+                case RecordSelector(field) =>
+                    RecordAccess(body, field).setStart(body).setEnd(field)
+                case ArraySelector(index) =>
+                    ArrayAccess(body, index).setStart(body).setEnd(index)
+            }
+
+        selectors.foldLeft(id)(doSelector)
     }
 }
