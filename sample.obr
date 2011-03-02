@@ -3,7 +3,7 @@ MODULE Sample;
 		VAR z: INTEGER;
 	BEGIN
 		z := 1 + 2 + 3 + 4 + 5;
-		z := x.foo[bar][baz].bar
+		k := x.foo[bar][baz].bar
 	END Foo;
 
     PROCEDURE Multiply;

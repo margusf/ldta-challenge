@@ -8,12 +8,17 @@ Module:
     "MODULE" name1=Id ";"
         decl=Declarations
         ("BEGIN"
-            StatementSequence)?
+            statements=StatementSequence)?
     "END" name2=Id ".";
 
 StatementSequence: first=Statement (";" rest=Statement)*;
 
-ConstantDef: name=Id EqOp CompExpr ";";
+// TODO: this only exists so that we can add type to expression.
+option Expression
+    {var exprType: Any = null}
+    : Id;
+
+ConstantDef: name=Id EqOp expr=CompExpr ";";
 VarDef: vars=IdentList ":" varType=Type ";";
 ProcedureDecl:
     "PROCEDURE" name=Id
@@ -125,7 +130,9 @@ WhileStatement:
         body=StatementSequence
     "END";
 
-terminal Id: ('a'..'z'|'A'..'Z') ('a'..'z'|'A'..'Z'|'0'..'9')*;
+terminal Id
+    {var ref: CommonNode = null}
+    : ('a'..'z'|'A'..'Z') ('a'..'z'|'A'..'Z'|'0'..'9')*;
 fragment MlComment: '/*' (~'*' | '*' ~'/')* '*/';
 fragment SlComment: '//' ~('\n'|'\r')*;
 hidden terminal WS: (' '|'\t'|'\r'|'\n'|SlComment|MlComment)+;
