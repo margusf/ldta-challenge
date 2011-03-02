@@ -56,7 +56,14 @@ class OberonConfig extends APluginConfig {
     }
 
     /** There is nothing to show in the outline view. */
-    def treeLabel(node: CommonNode) = null
+    def treeLabel(node: CommonNode) = node match {
+        case Module(Id(name), _, _, _) => "MODULE " + name
+        case ProcedureDecl(Id(name), _, _, _, _, _) => "PROCEDURE " + name
+        case ConstantDef(Id(name), _, _) => "CONST " + name
+        case Id(name) if node.parent.isInstanceOf[IdentList]  &&
+                node.parent.parent.isInstanceOf[VarDef] => "VAR " + name
+        case _ => null
+    }
 
     override def runGenerator(dir: String, file: String) {
         OberonMain.main(Array("--dest", dir, dir + file))
