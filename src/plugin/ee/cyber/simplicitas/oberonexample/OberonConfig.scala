@@ -52,7 +52,10 @@ object OberonConfig {
 class OberonConfig extends APluginConfig {
     /** Parses the input using the correct grammar. */
     def parse(ctx: ParseCtx) {
-        ctx parse new OberonGrammar()
+        val grammar = new OberonGrammar()
+        ctx.parse(grammar)
+        val typeErrors = Typecheck.process(grammar.tree)
+        ctx.reportErrors(typeErrors)
     }
 
     /** There is nothing to show in the outline view. */
@@ -62,6 +65,12 @@ class OberonConfig extends APluginConfig {
         case ConstantDef(Id(name), _, _) => "CONST " + name
         case Id(name) if node.parent.isInstanceOf[IdentList]  &&
                 node.parent.parent.isInstanceOf[VarDef] => "VAR " + name
+        case _ => null
+    }
+
+
+    override def referenceTarget(node: CommonNode) = node match {
+        case id: Id => id.ref
         case _ => null
     }
 

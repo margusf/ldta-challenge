@@ -17,12 +17,15 @@ class Env(parent: Env, defs: Map[String, CommonNode]) {
             Some(defs(name))
         else
             parent.get(name)
+
+    override def toString = defs.toString + " <- " + parent
 }
 
 object Env {
     def empty =
         new Env(null, Map.empty) {
             override def get(name: String) = None
+            override def toString = "()"
         }
 }
 
@@ -84,9 +87,10 @@ class Typecheck {
         }
 
         for (pd <- decl.procedures) {
-            newEnv = processProcedureDecl(pd, env)
+            newEnv = processProcedureDecl(pd, newEnv)
         }
 
+        println(newEnv)
         newEnv
     }
 

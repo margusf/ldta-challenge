@@ -38,6 +38,8 @@ MODULE Sample;
             k := (i+j) DIV 2;
             IF x < a[k] THEN j := k ELSE i := k+1 END
         END ;
-        Write(i); Write(j); Write(a[j]); WriteLn
+        Write(i); Write(j); Write(a[j]); WriteLn;
+
+		Divide; Multiply
     END BinSearch;
 END Sample.
