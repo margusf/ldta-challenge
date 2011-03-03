@@ -3,31 +3,6 @@ package ee.cyber.simplicitas.oberonexample
 import ee.cyber.simplicitas.{CommonNode, SourceMessage}
 import collection.mutable.ArrayBuffer
 
-// TODO: env should also map to kind (var, const, proc) and type.
-class Env(parent: Env, defs: Map[String, CommonNode]) {
-    def add(name: String, value: CommonNode): Env = {
-        println("add: " + name)
-        new Env(this, Map(name -> value))
-    }
-
-    def add(id: Id): Env = add(id.text, id)
-
-    def get(name: String): Option[CommonNode] =
-        if (defs.contains(name))
-            Some(defs(name))
-        else
-            parent.get(name)
-
-    override def toString = defs.toString + " <- " + parent
-}
-
-object Env {
-    def empty =
-        new Env(null, Map.empty) {
-            override def get(name: String) = None
-            override def toString = "()"
-        }
-}
 
 object Typecheck {
     def process(module: Module): List[SourceMessage] = {
@@ -41,7 +16,7 @@ class Typecheck {
     val errors = new ArrayBuffer[SourceMessage]
 
     def process(module: Module) {
-        var env = processDeclarations(module.decl, Env.empty)
+        var env = processDeclarations(module.decl, Env.initialEnv)
         processStatements(module.statements, env)
     }
 
