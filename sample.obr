@@ -3,7 +3,6 @@ MODULE Sample;
 		VAR z: INTEGER;
 	BEGIN
 		z := 1 + 2 + i + 4 + 5;
-		k := x.foo[bar][baz].bar;
 		barbaz
 	END Foo;
 
@@ -28,18 +27,12 @@ MODULE Sample;
         Write(x); Write(y); Write(q); Write(r); WriteLn
     END Divide;
 
-    PROCEDURE BinSearch;
-        VAR i, j, k, n, x: INTEGER;
-            a: ARRAY 32 OF INTEGER;
-    BEGIN Read(n); k := 0;
-        WHILE k < n DO Read(a[k]); k := k + 1 END ;
-        Read(x); i := 0; j := n;
-        WHILE i < j DO
-            k := (i+j) DIV 2;
-            IF x < a[k] THEN j := k ELSE i := k+1 END
-        END ;
-        Write(i); Write(j); Write(a[j]); WriteLn;
-
-		Divide; Multiply
-    END BinSearch;
+	PROCEDURE typeErrors(x: INTEGER; y: BOOLEAN);
+		VAR
+			i, j, k: INTEGER;
+			a, b, c, d: BOOLEAN;
+	BEGIN
+		i := x + y;
+		i := j + k
+	END typeErrors;
 END Sample.

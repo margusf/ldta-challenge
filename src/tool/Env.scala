@@ -19,14 +19,46 @@ class Env(parent: Env, defs: Map[String, Tuple2[CommonNode, OType]]) {
         else
             parent.get(name)
 
+    def getFun(name: String): Option[OFunc] =
+        get(name) match {
+            case Some((_, x: OFunc)) => Some(x)
+            case Some(x) => None // TODO: report that it is not function
+            case None => None
+        }
+
     override def toString = defs.toString + " ==> " + parent
 }
 
 object Env {
+    import Types._
+
+    def proc(name: String, params: OType*) =
+        (name, (null, OProc(params)))
+
+    def fun(name: String, ret: OType, params: OType*) =
+        (name, (null, OFunc(params, ret)))
+
     val predefs = Map[String, Tuple2[CommonNode, OType]](
-        "Write" -> (null, OProc(List(OAny()))),
-        "WriteLn" -> (null, OProc(Nil)),
-        "Read" -> (null, OProc(List(OAny()))))
+        proc("Write", any),
+        proc("WriteLn"),
+        proc("Read", any),
+
+        fun("+", int, int, int),
+        fun("-", int, int, int),
+        fun("*", int, int, int),
+        fun("DIV", int, int, int),
+        fun("MOD", int, int, int),
+
+        fun("<", int, int, int),
+        fun(">", int, int, int),
+        fun("<=", int, int, int),
+        fun(">=", int, int, int),
+        fun("=", int, int, int),
+        fun("#", int, int, int),
+
+        fun("&", int, int, int),
+        fun("OR", int, int, int)
+    )
 
     def initialEnv =
         new Env(null, predefs) {

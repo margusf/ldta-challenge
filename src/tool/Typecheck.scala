@@ -1,7 +1,7 @@
 package ee.cyber.simplicitas.oberonexample
 
-import ee.cyber.simplicitas.{CommonNode, SourceMessage}
 import collection.mutable.ArrayBuffer
+import ee.cyber.simplicitas.{SourceLocation, CommonNode, SourceMessage}
 
 
 object Typecheck {
@@ -60,7 +60,7 @@ class Typecheck {
 
         for (vd <- decl.vars; id <- vd.vars.first :: vd.vars.rest) {
             // TODO: type
-            newEnv = newEnv.addPrimitive(id, null)
+            newEnv = newEnv.addPrimitive(id, getType(vd.varType))
         }
 
         for (pd <- decl.procedures) {
@@ -78,8 +78,8 @@ class Typecheck {
         for (fp <- pd.firstParam :: pd.rest;
                 if fp ne null;
                 id <- fp.ids.first :: fp.ids.rest) {
-            // TODO: type
-            bodyEnv = bodyEnv.addPrimitive(id, null)
+            val paramType = getType(fp.pType)
+            bodyEnv = bodyEnv.addPrimitive(id, paramType)
         }
         bodyEnv = processDeclarations(pd.decl, bodyEnv)
 
@@ -88,34 +88,66 @@ class Typecheck {
         newEnv
     }
 
-    def processExpr(expr: Expression, env: Env) {
+    def getType(id: Id) = id match {
+        case Id("BOOLEAN") => Types.bool
+        case Id("INTEGER") => Types.int
+        case Id(other) =>
+            addError("Invalid type: " + other, id)
+            Types.any
+    }
+
+    def processExpr(expr: Expression, env: Env): OType = {
+        def processFunCall(op: String, args: List[Expression]) = {
+            env.getFun(op) match {
+                case Some(OFunc(aTypes, rType)) =>
+                    // TODO: check arity
+                    for ((a, t) <- args.zip(aTypes)) {
+                        val aType = processExpr(a, env)
+                        checkType(t, aType, a)
+                    }
+
+                    rType
+                case None =>
+                    addError("Unknown function: " + op, expr)
+                    Types.invalid
+            }
+        }
+
         expr match {
             case Id(name) =>
                 env.get(name) match {
-                    case Some((node, _)) =>
+                    case Some((node, oType)) =>
                         expr.asInstanceOf[Id].ref = node
+                        oType
                     case None =>
                         addError("Undefined identifier: " + name, expr)
+                        Types.any
                 }
-            case Binary(_, left, right) =>
-                processExpr(left, env)
-                processExpr(right, env)
-            case Unary(_, arg) =>
-                processExpr(arg, env)
+            case Binary(op, left, right) =>
+                processFunCall(op.toString, List(left, right))
+            case Unary(op, arg) =>
+                processFunCall(op.toString, List(arg))
             case NumberLit(_) =>
-                ()
-            case ArrayAccess(array, index) =>
-                processExpr(array, env)
-                processExpr(index, env)
-            case RecordAccess(record, field) =>
-                processExpr(record, env)
-                // TODO: check field against type.
+                Types.int
+//            case ArrayAccess(array, index) =>
+//                processExpr(array, env)
+//                processExpr(index, env)
+//            case RecordAccess(record, field) =>
+//                processExpr(record, env)
+//                // TODO: check field against type.
             case _ =>
                 throw new IllegalArgumentException(expr.toString)
         }
     }
 
-    def addError(message: String, location: CommonNode) {
+    def checkType(expected: OType, received: OType, loc: SourceLocation) {
+        if (!expected.assignableFrom(received)) {
+            addError("Type error: expected " + expected + ", but got " + received,
+                loc)
+        }
+    }
+
+    def addError(message: String, location: SourceLocation) {
         errors += new SourceMessage(message, SourceMessage.Error, location)
     }
 }
