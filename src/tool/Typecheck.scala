@@ -54,7 +54,11 @@ class Typecheck {
                 processExpr(left, env)
                 processExpr(right, env)
             case ProcedureCall(proc, first, rest) =>
-                ()
+                // TODO: verify that proc is a procedure.
+                processExpr(proc, env)
+                if (first ne null) {
+                    (first :: rest).foreach(processExpr(_, env))
+                }
             case IfStatement(cond, ifStmt, elsifCond, elsifStmt, elseStmt) =>
                 processExpr(cond, env)
                 processStatements(ifStmt, env)
@@ -62,9 +66,8 @@ class Typecheck {
                 elsifStmt.foreach(processStatements(_, env))
                 processStatements(elseStmt, env)
             case WhileStatement(cond, body) =>
-                ()
-            case _ =>
-                println("Unknown: " + stm)
+                processExpr(cond, env)
+                processStatements(body, env)
         }
     }
 
@@ -111,9 +114,21 @@ class Typecheck {
                     case None =>
                         addError("Undefined identifier: " + name, expr)
                 }
-            case _ =>
-                // TODO
+            case Binary(_, left, right) =>
+                processExpr(left, env)
+                processExpr(right, env)
+            case Unary(_, arg) =>
+                processExpr(arg, env)
+            case NumberLit(_) =>
                 ()
+            case ArrayAccess(array, index) =>
+                processExpr(array, env)
+                processExpr(index, env)
+            case RecordAccess(record, field) =>
+                processExpr(record, env)
+                // TODO: check field against type.
+            case _ =>
+                throw new IllegalArgumentException(expr.toString)
         }
     }
 

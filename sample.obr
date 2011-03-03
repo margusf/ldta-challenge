@@ -2,8 +2,9 @@ MODULE Sample;
 	PROCEDURE Foo(x, y: INTEGER);
 		VAR z: INTEGER;
 	BEGIN
-		z := 1 + 2 + 3 + 4 + 5;
-		k := x.foo[bar][baz].bar
+		z := 1 + 2 + i + 4 + 5;
+		k := x.foo[bar][baz].bar;
+		barbaz
 	END Foo;
 
     PROCEDURE Multiply;
