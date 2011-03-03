@@ -3,34 +3,34 @@ package ee.cyber.simplicitas.oberonexample
 import ee.cyber.simplicitas.CommonNode
 
 // TODO: env should also map to kind (var, const, proc) and type.
-class Env(parent: Env, defs: Map[String, CommonNode]) {
-    def add(name: String, value: CommonNode): Env = {
-        println("add: " + name)
-        new Env(this, Map(name -> value))
-    }
+class Env(parent: Env, defs: Map[String, Tuple2[CommonNode, OType]]) {
+    def addProc(id: Id, params: List[OType]) =
+        new Env(this, Map(id.text -> (id, OProc(params))))
 
-    def add(id: Id): Env = add(id.text, id)
+    def addPrimitive(id: Id, ptype: OType) =
+        new Env(this, Map(id.text -> (id, ptype)))
 
-    def get(name: String): Option[CommonNode] =
+    def addConst(id: Id, ptype: OType) =
+        new Env(this, Map(id.text -> (id, ptype)))
+
+    def get(name: String): Option[Tuple2[CommonNode, OType]] =
         if (defs.contains(name))
             Some(defs(name))
         else
             parent.get(name)
 
-    override def toString = defs.toString + " <- " + parent
+    override def toString = defs.toString + " ==> " + parent
 }
 
 object Env {
-    val predefs = Map[String, CommonNode](
-        "Write" -> null,
-        "WriteLn" -> null,
-        "Read" -> null)
+    val predefs = Map[String, Tuple2[CommonNode, OType]](
+        "Write" -> (null, OProc(List(OAny()))),
+        "WriteLn" -> (null, OProc(Nil)),
+        "Read" -> (null, OProc(List(OAny()))))
 
     def initialEnv =
         new Env(null, predefs) {
             override def get(name: String) = predefs.get(name)
             override def toString = "()"
         }
-
-
 }

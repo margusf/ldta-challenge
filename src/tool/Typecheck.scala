@@ -16,7 +16,7 @@ class Typecheck {
     val errors = new ArrayBuffer[SourceMessage]
 
     def process(module: Module) {
-        var env = processDeclarations(module.decl, Env.initialEnv)
+        val env = processDeclarations(module.decl, Env.initialEnv)
         processStatements(module.statements, env)
     }
 
@@ -54,11 +54,13 @@ class Typecheck {
 
         for (cd <- decl.consts) {
             processExpr(cd.expr, newEnv)
-            newEnv = newEnv.add(cd.name)
+            // TODO: separately deal with constants
+            newEnv = newEnv.addPrimitive(cd.name, null)
         }
 
         for (vd <- decl.vars; id <- vd.vars.first :: vd.vars.rest) {
-            newEnv = newEnv.add(id)
+            // TODO: type
+            newEnv = newEnv.addPrimitive(id, null)
         }
 
         for (pd <- decl.procedures) {
@@ -70,12 +72,14 @@ class Typecheck {
     }
 
     def processProcedureDecl(pd: ProcedureDecl, env: Env) = {
-        val newEnv = env.add(pd.name)
+        // TODO: type
+        val newEnv = env.addProc(pd.name, null)
         var bodyEnv = newEnv
         for (fp <- pd.firstParam :: pd.rest;
                 if fp ne null;
                 id <- fp.ids.first :: fp.ids.rest) {
-            bodyEnv = bodyEnv.add(id)
+            // TODO: type
+            bodyEnv = bodyEnv.addPrimitive(id, null)
         }
         bodyEnv = processDeclarations(pd.decl, bodyEnv)
 
@@ -88,7 +92,7 @@ class Typecheck {
         expr match {
             case Id(name) =>
                 env.get(name) match {
-                    case Some(node) =>
+                    case Some((node, _)) =>
                         expr.asInstanceOf[Id].ref = node
                     case None =>
                         addError("Undefined identifier: " + name, expr)
