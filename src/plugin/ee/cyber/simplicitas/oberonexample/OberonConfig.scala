@@ -58,7 +58,6 @@ class OberonConfig extends APluginConfig {
         ctx.reportErrors(typeErrors)
     }
 
-    /** There is nothing to show in the outline view. */
     def treeLabel(node: CommonNode) = node match {
         case Module(Id(name), _, _, _) => "MODULE " + name
         case ProcedureDecl(Id(name), _, _, _, _, _) => "PROCEDURE " + name
