@@ -27,24 +27,48 @@ class Typecheck {
     }
 
     def processStatement(stm: Statement, env: Env) {
+        def checkBoolean(expr: Expression, env: Env) {
+            val exprType = processExpr(expr, env)
+            checkType(Types.bool, exprType, expr)
+        }
+
         stm match {
             case Assignment(left, right) =>
                 processExpr(left, env)
                 processExpr(right, env)
             case ProcedureCall(proc, first, rest) =>
-                // TODO: verify that proc is a procedure.
-                processExpr(proc, env)
-                if (first ne null) {
-                    (first :: rest).foreach(processExpr(_, env))
+                val procType = processExpr(proc, env)
+                procType match {
+                    case OProc(formals) =>
+                        val argList =
+                            if (first ne null)
+                                (first :: rest)
+                            else
+                                List.empty
+                        val argTypes = argList.map(processExpr(_, env))
+                        if (argList.size != formals.size) {
+                            addError("Invalid number of parameters: expected " +
+                                formals.size + ", but got " + argList.size,
+                                proc)
+                        }
+                        for ((ft, (at, al)) <-
+                                formals.zip(argTypes.zip(argList))) {
+                            checkType(ft, at, al)
+                        }
+                    case OInvalid() =>
+                        // Invalid type was reported elsewhere.
+                        ()
+                    case _ =>
+                        addError(proc.text + " is not a procedure", proc)
                 }
             case IfStatement(cond, ifStmt, elsifCond, elsifStmt, elseStmt) =>
-                processExpr(cond, env)
+                checkBoolean(cond, env)
                 processStatements(ifStmt, env)
-                elsifCond.foreach(processExpr(_, env))
+                elsifCond.foreach(checkBoolean(_, env))
                 elsifStmt.foreach(processStatements(_, env))
                 processStatements(elseStmt, env)
             case WhileStatement(cond, body) =>
-                processExpr(cond, env)
+                checkBoolean(cond, env)
                 processStatements(body, env)
         }
     }
@@ -53,13 +77,11 @@ class Typecheck {
         var newEnv = env
 
         for (cd <- decl.consts) {
-            processExpr(cd.expr, newEnv)
-            // TODO: separately deal with constants
-            newEnv = newEnv.addPrimitive(cd.name, null)
+            val cType = processExpr(cd.expr, newEnv)
+            newEnv = newEnv.addPrimitive(cd.name, cType)
         }
 
         for (vd <- decl.vars; id <- vd.vars.first :: vd.vars.rest) {
-            // TODO: type
             newEnv = newEnv.addPrimitive(id, getType(vd.varType))
         }
 
@@ -72,20 +94,22 @@ class Typecheck {
     }
 
     def processProcedureDecl(pd: ProcedureDecl, env: Env) = {
-        // TODO: type
         val newEnv = env.addProc(pd.name, null)
         var bodyEnv = newEnv
+        val paramTypes = new ArrayBuffer[OType]
+
         for (fp <- pd.firstParam :: pd.rest;
                 if fp ne null;
                 id <- fp.ids.first :: fp.ids.rest) {
             val paramType = getType(fp.pType)
             bodyEnv = bodyEnv.addPrimitive(id, paramType)
+            paramTypes += paramType
         }
         bodyEnv = processDeclarations(pd.decl, bodyEnv)
 
         processStatements(pd.body, bodyEnv)
 
-        newEnv
+        newEnv.addProc(pd.name, paramTypes)
     }
 
     def getType(id: Id) = id match {

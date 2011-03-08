@@ -32,7 +32,18 @@ MODULE Sample;
 			i, j, k: INTEGER;
 			a, b, c, d: BOOLEAN;
 	BEGIN
-		i := x + y;
+		i := 1 + 2 + 3 + x + y;
 		i := j + k
 	END typeErrors;
+
+	PROCEDURE withParams(x: INTEGER; y: BOOLEAN);
+	END withParams;
+
+	PROCEDURE useParams;
+	BEGIN
+		withParams(10, 1 = 1);
+		withParams(1 = 1, 2);
+		Multiply(22);
+		withParams(2)
+	END useParams;
 END Sample.

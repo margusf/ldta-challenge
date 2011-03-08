@@ -4,7 +4,7 @@ import ee.cyber.simplicitas.CommonNode
 
 // TODO: env should also map to kind (var, const, proc) and type.
 class Env(parent: Env, defs: Map[String, Tuple2[CommonNode, OType]]) {
-    def addProc(id: Id, params: List[OType]) =
+    def addProc(id: Id, params: Seq[OType]) =
         new Env(this, Map(id.text -> (id, OProc(params))))
 
     def addPrimitive(id: Id, ptype: OType) =
@@ -49,15 +49,15 @@ object Env {
         fun("DIV", int, int, int),
         fun("MOD", int, int, int),
 
-        fun("<", int, int, int),
-        fun(">", int, int, int),
-        fun("<=", int, int, int),
-        fun(">=", int, int, int),
-        fun("=", int, int, int),
-        fun("#", int, int, int),
+        fun("<", bool, int, int),
+        fun(">", bool, int, int),
+        fun("<=", bool, int, int),
+        fun(">=", bool, int, int),
+        fun("=", bool, int, int),
+        fun("#", bool, int, int),
 
-        fun("&", int, int, int),
-        fun("OR", int, int, int)
+        fun("&", bool, bool, bool),
+        fun("OR", bool, bool, bool)
     )
 
     def initialEnv =
