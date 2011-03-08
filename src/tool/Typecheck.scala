@@ -121,7 +121,7 @@ class Typecheck {
                         oType
                     case None =>
                         addError("Undefined identifier: " + name, expr)
-                        Types.any
+                        Types.invalid
                 }
             case Binary(op, left, right) =>
                 processFunCall(op.toString, List(left, right))
@@ -141,7 +141,10 @@ class Typecheck {
     }
 
     def checkType(expected: OType, received: OType, loc: SourceLocation) {
-        if (!expected.assignableFrom(received)) {
+        // Do not report type errors for expressions that are already
+        // incorrectly typed.
+        if (expected != Types.invalid && received != Types.invalid &&
+                !expected.assignableFrom(received)) {
             addError("Type error: expected " + expected + ", but got " + received,
                 loc)
         }
