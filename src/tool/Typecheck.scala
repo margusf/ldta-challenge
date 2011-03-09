@@ -78,13 +78,17 @@ class Typecheck {
     def processDeclarations(decl: Declarations, env: Env): Env = {
         var newEnv = env
 
+        for (td <- decl.types) {
+            newEnv = newEnv.addType(td.name.text, getType(td.tValue, newEnv))
+        }
+
         for (cd <- decl.consts) {
             val cType = processExpr(cd.expr, newEnv)
             newEnv = newEnv.addPrimitive(cd.name, cType)
         }
 
         for (vd <- decl.vars; id <- vd.vars.first :: vd.vars.rest) {
-            newEnv = newEnv.addPrimitive(id, getType(vd.varType))
+            newEnv = newEnv.addPrimitive(id, getType(vd.varType, newEnv))
         }
 
         for (pd <- decl.procedures) {
@@ -102,7 +106,7 @@ class Typecheck {
         for (fp <- pd.firstParam :: pd.rest;
                 if fp ne null;
                 id <- fp.ids.first :: fp.ids.rest) {
-            val paramType = getType(fp.pType)
+            val paramType = getType(fp.pType, bodyEnv)
             bodyEnv = bodyEnv.addPrimitive(id, paramType)
             paramTypes += paramType
         }
@@ -113,19 +117,17 @@ class Typecheck {
         newEnv.addProc(pd.name, paramTypes)
     }
 
-    def getType(id: Id) = id match {
-        case Id("BOOLEAN") => Types.bool
-        case Id("INTEGER") => Types.int
-        case Id(other) =>
-            addError("Invalid type: " + other, id)
-            Types.any
+    def getType(id: Id, env: Env) = env.getType(id.text) match {
+        case Some(t) => t
+        case None =>
+            addError("Invalid type: " + id.text, id)
+            Types.invalid
     }
 
     def processExpr(expr: Expression, env: Env): OType = {
         def processFunCall(op: String, args: List[Expression]) = {
             env.getFun(op) match {
                 case Some(OFunc(aTypes, rType)) =>
-                    // TODO: check arity
                     for ((a, t) <- args.zip(aTypes)) {
                         val aType = processExpr(a, env)
                         checkType(t, aType, a)

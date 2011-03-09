@@ -29,8 +29,11 @@ MODULE Sample;
 
 
 	PROCEDURE typeErrors(x: INTEGER; y: BOOLEAN);
+		TYPE
+			intT = INTEGER;
+			intT2 = intT;
 		VAR
-			i, j, k: INTEGER;
+			i, j, k: intT2;
 			a, b, c, d: BOOLEAN;
 	BEGIN
 		i := 1 + 2 + 3 + x + y;

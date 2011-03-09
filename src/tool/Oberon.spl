@@ -34,16 +34,12 @@ Declarations:
     ("CONST"
         consts=ConstantDef*)?
     ("TYPE"
-        /* TODO */)?
+        types=TypeDef*)?
     ("VAR"
         vars=VarDef*)?
     (procedures=ProcedureDecl ";")*;
 
-// factor = ident selector | number | "(" expression ")" | "~" factor.
-// term = factor {("*" | "DIV" | "MOD" | "&") factor}.
-// SimpleExpression = ["+"|"-"] term {("+"|"-" | "OR") term}.
-// expression = SimpleExpression
-// [("=" | "#" | "<" | "<=" | ">" | ">=") SimpleExpression].
+TypeDef: name=Id "=" tValue=Id ";";
 
 CompExpr
     returns Expression {makeBinary(op, left, right)}
@@ -97,11 +93,6 @@ ParenExpr returns Expression {expr}: "(" expr=CompExpr ")";
 NotExpr
     returns Expression {Unary(UnaryOp.Not, expr)}
     : "~" expr=Factor;
-
-//option Type: Id | ArrayType | RecordType;
-//ArrayType: "ARRAY" count=PlusExpr "OF" baseType=Type;
-//RecordType: "RECORD" (first=RecordField (";" rest=RecordField)*)? "END";
-//RecordField: idents=IdentList ":" fieldType=Type;
 
 IdentList: first=Id ("," rest=Id)*;
 
