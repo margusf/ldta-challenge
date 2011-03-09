@@ -100,7 +100,8 @@ option Statement:
     Assignment
     | ProcedureCall
     | IfStatement
-    | WhileStatement;
+    | WhileStatement
+    | ForStatement;
 
 Assignment: left=Lhs ":=" right=CompExpr;
 ProcedureCall:
@@ -120,6 +121,16 @@ WhileStatement:
     "WHILE" cond=CompExpr "DO"
         body=StatementSequence
     "END";
+    
+ForStatement:
+    "FOR" variable=Id ":=" start=PlusExpr 
+            direction=ForDirection end=PlusExpr "DO"
+        body=StatementSequence
+    "END";
+
+option ForDirection: To | DownTo;
+To: "TO";
+DownTo: "DOWNTO";
 
 terminal Id
     {var ref: CommonNode = null}

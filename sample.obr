@@ -52,6 +52,10 @@ MODULE Sample;
 		withParams(1 = 1, 2);
 		withParams(foo, foo);
 		Multiply(22);
-		withParams(2)
+		withParams(2);
+
+		FOR foo := 10 TO bar DO
+			foo := 10
+		END
 	END useParams;
 END Sample.

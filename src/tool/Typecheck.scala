@@ -32,6 +32,11 @@ class Typecheck {
             checkType(Types.bool, exprType, expr)
         }
 
+        def checkInteger(expr: Expression, env: Env) {
+            val exprType = processExpr(expr, env)
+            checkType(Types.int, exprType, expr)
+        }
+
         stm match {
             case Assignment(left, right) =>
                 processExpr(left, env)
@@ -69,6 +74,11 @@ class Typecheck {
                 processStatements(elseStmt, env)
             case WhileStatement(cond, body) =>
                 checkBoolean(cond, env)
+                processStatements(body, env)
+            case ForStatement(varName, start, direction, end, body) =>
+                checkInteger(varName, env)
+                checkInteger(start, env)
+                checkInteger(end, env)
                 processStatements(body, env)
             case _ =>
                 ()
