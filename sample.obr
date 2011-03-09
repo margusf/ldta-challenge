@@ -25,7 +25,8 @@ MODULE Sample;
             IF w <= r THEN r := r - w; q := q + 1 END
         END ;
         Write(x); Write(y); Write(q); Write(r); WriteLn
-    END Divide;
+	END Divide;
+
 
 	PROCEDURE typeErrors(x: INTEGER; y: BOOLEAN);
 		VAR
@@ -40,9 +41,13 @@ MODULE Sample;
 	END withParams;
 
 	PROCEDURE useParams;
+		CONST
+			foo = 10;
+			bar = 1 = 1;
 	BEGIN
 		withParams(10, 1 = 1);
 		withParams(1 = 1, 2);
+		withParams(foo, foo);
 		Multiply(22);
 		withParams(2)
 	END useParams;
