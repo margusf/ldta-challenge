@@ -70,6 +70,8 @@ class Typecheck {
             case WhileStatement(cond, body) =>
                 checkBoolean(cond, env)
                 processStatements(body, env)
+            case _ =>
+                ()
         }
     }
 
@@ -89,7 +91,6 @@ class Typecheck {
             newEnv = processProcedureDecl(pd, newEnv)
         }
 
-        println(newEnv)
         newEnv
     }
 
