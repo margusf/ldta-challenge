@@ -26,7 +26,7 @@ class Env(parent: Env,
     def getFun(name: String): Option[OFunc] =
         get(name) match {
             case Some((_, x: OFunc)) => Some(x)
-            case Some(x) => None // TODO: report that it is not function
+            case Some(x) => None
             case None => None
         }
 

@@ -39,8 +39,9 @@ class Typecheck {
 
         stm match {
             case Assignment(left, right) =>
-                processExpr(left, env)
-                processExpr(right, env)
+                val leftType = processExpr(left, env)
+                val rightType = processExpr(right, env)
+                checkType(leftType, rightType, right)
             case ProcedureCall(proc, first, rest) =>
                 val procType = processExpr(proc, env)
                 procType match {
@@ -80,6 +81,12 @@ class Typecheck {
                 checkInteger(start, env)
                 checkInteger(end, env)
                 processStatements(body, env)
+            case CaseStatement(expr, clauses, elseClause) =>
+                checkInteger(expr, env)
+                for (clause <- clauses) {
+                    processStatements(clause.stmt, env)
+                }
+                processStatements(elseClause, env)
             case _ =>
                 ()
         }

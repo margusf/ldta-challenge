@@ -56,6 +56,20 @@ MODULE Sample;
 
 		FOR foo := 10 TO bar DO
 			foo := 10
+		END;
+
+		CASE 1 + foo OF
+			1..2:
+				WriteLn;
+			2..3, 4..5:
+				WriteLn;
+				WriteLn;
+				WriteLn;
+			8:
+				foo := 10;
+				bar := 20;
+			ELSE
+				Write(foo);
 		END
 	END useParams;
 END Sample.

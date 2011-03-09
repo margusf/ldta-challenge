@@ -101,7 +101,8 @@ option Statement:
     | ProcedureCall
     | IfStatement
     | WhileStatement
-    | ForStatement;
+    | ForStatement
+    | CaseStatement;
 
 Assignment: left=Lhs ":=" right=CompExpr;
 ProcedureCall:
@@ -127,10 +128,21 @@ ForStatement:
             direction=ForDirection end=PlusExpr "DO"
         body=StatementSequence
     "END";
-
 option ForDirection: To | DownTo;
 To: "TO";
 DownTo: "DOWNTO";
+
+CaseStatement:
+    "CASE" expr=PlusExpr "OF"
+        clauses=CaseClause+
+        ("ELSE" elseClause=StatementSequence ";")?
+    "END";
+
+CaseClause: 
+    first=CaseConstant ("," rest=CaseConstant)* ":"
+    stmt=StatementSequence ";";
+
+CaseConstant: begin=NumberLit (".." end=NumberLit)?;
 
 terminal Id
     {var ref: CommonNode = null}
