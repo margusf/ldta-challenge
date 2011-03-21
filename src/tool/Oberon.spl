@@ -11,7 +11,7 @@ Module:
             statements=StatementSequence)?
     "END" name2=Id ".";
 
-StatementSequence: first=Statement (";" rest=Statement)*;
+StatementSequence: stmt=Statement (";" stmt=Statement)*;
 
 // TODO: this only exists so that we can add type to expression.
 option Expression
@@ -22,7 +22,7 @@ ConstantDef: name=Id EqOp expr=CompExpr ";";
 VarDef: vars=IdentList ":" varType=Id ";";
 ProcedureDecl:
     "PROCEDURE" name=Id
-        ("(" (firstParam=FormalParam (";" rest=FormalParam)*)? ")")?
+        ("(" (params=FormalParam (";" params=FormalParam)*)? ")")?
     ";"
     decl=Declarations
     ("BEGIN"
@@ -61,15 +61,15 @@ NegExpr
     returns Expression {Unary(UnaryOp.Neg, arg)}
     : MinusOp arg=PlusExpr;
 PlusExpr
-    returns Expression {makeBinary(ops, first :: rest)}
-    : first=Term (ops=PlusExprOp rest=Term)*;
+    returns Expression {makeBinary(ops, args)}
+    : args=Term (ops=PlusExprOp args=Term)*;
 option PlusExprOp
     {def text: String}
     : PlusOp | MinusOp | OrOp;
 
 Term
-    returns Expression {makeBinary(ops, first :: rest)}
-    : first=Factor (ops=TermOp rest=Factor)*;
+    returns Expression {makeBinary(ops, args)}
+    : args=Factor (ops=TermOp args=Factor)*;
 terminal TermOp: "*" | "DIV" | "MOD" | "&";
 option Factor returns Expression:
     Lhs
@@ -94,7 +94,7 @@ NotExpr
     returns Expression {Unary(UnaryOp.Not, expr)}
     : "~" expr=Factor;
 
-IdentList: first=Id ("," rest=Id)*;
+IdentList: ids=Id ("," ids=Id)*;
 
 option Statement:
     Assignment
@@ -107,13 +107,13 @@ option Statement:
 Assignment: left=Lhs ":=" right=CompExpr;
 ProcedureCall:
     proc=Id /* TODO: Selector* */  // WTF is selector doing here?
-        ("(" first=CompExpr ("," rest=CompExpr)* ")")?;
+        ("(" args=CompExpr ("," args=CompExpr)* ")")?;
 
 IfStatement:
     "IF" cond=CompExpr "THEN"
         ifStmt=StatementSequence
-    ("ELSIF" elsifCond=CompExpr "THEN"
-        elsifStmt=StatementSequence)*
+    ("ELSIF" cond=CompExpr "THEN"
+        ifStmt=StatementSequence)*
     ("ELSE"
         elseStmt=StatementSequence)?
     "END";
@@ -122,9 +122,9 @@ WhileStatement:
     "WHILE" cond=CompExpr "DO"
         body=StatementSequence
     "END";
-    
+
 ForStatement:
-    "FOR" variable=Id ":=" start=PlusExpr 
+    "FOR" variable=Id ":=" start=PlusExpr
             direction=ForDirection end=PlusExpr "DO"
         body=StatementSequence
     "END";
@@ -138,8 +138,8 @@ CaseStatement:
         ("ELSE" elseClause=StatementSequence ";")?
     "END";
 
-CaseClause: 
-    first=CaseConstant ("," rest=CaseConstant)* ":"
+CaseClause:
+    items=CaseConstant ("," items=CaseConstant)* ":"
     stmt=StatementSequence ";";
 
 CaseConstant: begin=NumberLit (".." end=NumberLit)?;

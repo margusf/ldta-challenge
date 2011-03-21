@@ -22,7 +22,7 @@ class Typecheck {
 
     def processStatements(seq: StatementSequence, env: Env) {
         if (seq ne null) {
-            (seq.first :: seq.rest).foreach(processStatement(_, env))
+            seq.stmt.foreach(processStatement(_, env))
         }
     }
 
@@ -42,23 +42,18 @@ class Typecheck {
                 val leftType = processExpr(left, env)
                 val rightType = processExpr(right, env)
                 checkType(leftType, rightType, right)
-            case ProcedureCall(proc, first, rest) =>
+            case ProcedureCall(proc, args) =>
                 val procType = processExpr(proc, env)
                 procType match {
                     case OProc(formals) =>
-                        val argList =
-                            if (first ne null)
-                                (first :: rest)
-                            else
-                                List.empty
-                        val argTypes = argList.map(processExpr(_, env))
-                        if (argList.size != formals.size) {
+                        val argTypes = args.map(processExpr(_, env))
+                        if (args.size != formals.size) {
                             addError("Invalid number of parameters: expected " +
-                                formals.size + ", but got " + argList.size,
+                                formals.size + ", but got " + args.size,
                                 proc)
                         }
                         for ((ft, (at, al)) <-
-                                formals.zip(argTypes.zip(argList))) {
+                                formals.zip(argTypes.zip(args))) {
                             checkType(ft, at, al)
                         }
                     case OInvalid() =>
@@ -67,11 +62,9 @@ class Typecheck {
                     case _ =>
                         addError(proc.text + " is not a procedure", proc)
                 }
-            case IfStatement(cond, ifStmt, elsifCond, elsifStmt, elseStmt) =>
-                checkBoolean(cond, env)
-                processStatements(ifStmt, env)
-                elsifCond.foreach(checkBoolean(_, env))
-                elsifStmt.foreach(processStatements(_, env))
+            case IfStatement(cond, ifStmt, elseStmt) =>
+                cond.foreach(checkBoolean(_, env))
+                ifStmt.foreach(processStatements(_, env))
                 processStatements(elseStmt, env)
             case WhileStatement(cond, body) =>
                 checkBoolean(cond, env)
@@ -104,7 +97,7 @@ class Typecheck {
             newEnv = newEnv.addPrimitive(cd.name, cType)
         }
 
-        for (vd <- decl.vars; id <- vd.vars.first :: vd.vars.rest) {
+        for (vd <- decl.vars; id <- vd.vars.ids) {
             newEnv = newEnv.addPrimitive(id, getType(vd.varType, newEnv))
         }
 
@@ -120,9 +113,9 @@ class Typecheck {
         var bodyEnv = newEnv
         val paramTypes = new ArrayBuffer[OType]
 
-        for (fp <- pd.firstParam :: pd.rest;
-                if fp ne null;
-                id <- fp.ids.first :: fp.ids.rest) {
+        for (fp <- pd.params;
+             if fp ne null;
+             id <- fp.ids.ids) {
             val paramType = getType(fp.pType, bodyEnv)
             bodyEnv = bodyEnv.addPrimitive(id, paramType)
             paramTypes += paramType

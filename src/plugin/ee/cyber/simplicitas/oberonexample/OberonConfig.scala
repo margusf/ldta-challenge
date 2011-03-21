@@ -60,7 +60,7 @@ class OberonConfig extends APluginConfig {
 
     def treeLabel(node: CommonNode) = node match {
         case Module(Id(name), _, _, _) => "MODULE " + name
-        case ProcedureDecl(Id(name), _, _, _, _, _) => "PROCEDURE " + name
+        case ProcedureDecl(Id(name), _, _, _, _) => "PROCEDURE " + name
         case ConstantDef(Id(name), _, _) => "CONST " + name
         case Id(name) if node.parent.isInstanceOf[IdentList]  &&
                 node.parent.parent.isInstanceOf[VarDef] => "VAR " + name
