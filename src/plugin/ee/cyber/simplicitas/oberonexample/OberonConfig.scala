@@ -67,6 +67,12 @@ class OberonConfig extends APluginConfig {
         case _ => null
     }
 
+    override def isFoldable(node: CommonNode) = node match {
+        case Module(_, _, _, _)
+                | ProcedureDecl(_, _, _, _, _) => true
+        case _ => false
+    }
+
 
     override def referenceTarget(node: CommonNode) = node match {
         case id: Id => id.ref
