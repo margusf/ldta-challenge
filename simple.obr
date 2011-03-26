@@ -1,0 +1,8 @@
+MODULE Simple;
+    PROCEDURE Test(x: INTEGER; y: BOOLEAN);
+        VAR
+            z: INTEGER;
+    BEGIN
+        z := x + y + stranger
+    END Test;
+END Simple.
