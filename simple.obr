@@ -3,6 +3,6 @@ MODULE Simple;
         VAR
             z: INTEGER;
     BEGIN
-        z := x + y + stranger
+        z := x + 20
     END Test;
 END Simple.
