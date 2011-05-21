@@ -14,24 +14,45 @@ object Codegen {
     private def generateModule(ctx: GenCtx, module: Module) {
         println(generateDecl(ctx, module.decl))
 
-        val stmt = generateStatement(module.statements)
+        val stmt = generateStatements(module.statements)
         println(stmt)
 
         gen.Module(module.name1.text, null, null, null)
     }
 
-    private def generateDecl(ctx: GenCtx, decl: Declarations): Gen = {
-        // TODO: create list of vars.
+    private def generateDecl(ctx: GenCtx,
+                             decl: Declarations): Seq[gen.Statement] = {
         for (proc <- decl.procedures) {
-            val (params, pTypes) = getParameters(proc)
-
-            // TODO: generate procedure.
-            // TODO: add procedure to toplevel.
-            ctx.addToplevel(
-                gen.ProcDecl(proc.name.text, params, pTypes, List.empty))
+            generateProcedure(ctx, proc)
         }
 
-        null
+        val body = new ArrayBuffer[gen.Statement]
+
+        for (varDecl <- decl.vars; id <- varDecl.vars.ids) {
+            // TODO: convert to C type.
+            body += gen.VarDecl(id.text, varDecl.varType.text)
+        }
+
+        for (constDecl <- decl.consts) {
+            // TODO: convert to C type.
+            body += gen.ConstDecl(constDecl.name.text,
+                "TODO",
+                generateExpr(constDecl.expr))
+        }
+
+        body
+    }
+
+    def generateProcedure(ctx: GenCtx, proc: ProcedureDecl) {
+        val (params, pTypes) = getParameters(proc)
+
+        val body = new ArrayBuffer[gen.Statement]
+        body ++= generateDecl(ctx, proc.decl)
+        body ++= generateStatements(proc.body)
+
+        // TODO: add procedure to toplevel.
+        ctx.addToplevel(
+            gen.ProcDecl(proc.name.text, params, pTypes, body.toList))
     }
 
     private def getParameters(proc: ProcedureDecl) = {
@@ -47,9 +68,12 @@ object Codegen {
         (params.toList, pTypes.toList)
     }
 
-    private def generateStatement(stmt: StatementSequence): Gen = {
-        null
+    private def generateStatements(stmt: StatementSequence): Seq[gen.Statement] = {
+        List.empty
     }
+
+    def generateExpr(expr: Expression): gen.Expr =
+        null
 }
 
 class GenCtx {
