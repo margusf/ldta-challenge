@@ -3,6 +3,13 @@ MODULE Simple;
         VAR
             z: INTEGER;
     BEGIN
-        z := x + 20
+        z := x + 20;
+		IF y THEN
+			z := 10
+		ELSIF z = 0 THEN
+			z := 11
+		ELSE
+			z := 12
+		END
     END Test;
 END Simple.
