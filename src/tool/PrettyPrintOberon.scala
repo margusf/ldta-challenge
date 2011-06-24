@@ -21,10 +21,12 @@ object PrettyPrintOberon {
 
     implicit def idToDoc(id: Id) = text(id.text)
 
+    val semicolon = ";" :: lineBreak
+
     def prettyPrint(module: Module): Document = {
-        "MODULE" :: space :: module.name1 :: ";" ::
+        "MODULE" :: space :: module.name1 :: semicolon ::
             // declarations
-        "BEGIN" ::
+        "BEGIN" :: lineBreak ::
             // statements
         "END" :: space :: module.name2 :: text(".")
     }

@@ -56,6 +56,7 @@ import java.io.Writer
 case object DocNil extends Document
 case object DocBreak extends Document
 case object DocSpace extends Document
+case object DocLineBreak extends Document
 case class DocText(txt: String) extends Document
 case class DocGroup(doc: Document) extends Document
 case class DocNest(indent: Int, doc: Document) extends Document
@@ -105,6 +106,8 @@ abstract class Document {
         fits(w - 1, z)
       case (_, true, DocSpace) :: z =>
         true
+      case (_, _, DocLineBreak) :: z =>
+        true
       case (i, _, DocGroup(d)) :: z =>
         fits(w, (i, false, d) :: z)
     }
@@ -139,6 +142,10 @@ abstract class Document {
         writer write "\n"
         spaces(i);
         fmt(i, z)
+      case (i, _, DocLineBreak) :: z =>
+        writer write "\n"
+        spaces(i)
+        fmt(i, z)
       case (i, false, DocSpace) :: z =>
         writer write " "
         fmt(k + 1, z)
@@ -160,6 +167,9 @@ object Document {
 
   /** A break, which will either be turned into a space or a line break */
   def space = DocSpace
+
+  /** Line break. */
+  def lineBreak = DocLineBreak
 
   /** A document consisting of some text literal */
   def text(s: String): Document = DocText(s)
