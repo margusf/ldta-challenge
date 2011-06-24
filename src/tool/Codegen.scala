@@ -98,8 +98,6 @@ object Codegen {
             loop(cond, ifStmt)
         }
 
-//ProcedureCall
-//    | IfStatement
 //    | WhileStatement
 //    | ForStatement
 //    | CaseStatement

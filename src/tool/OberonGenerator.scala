@@ -19,6 +19,8 @@ object OberonMain extends MainBase {
             grammar.parseFile(arg)
             checkErrors(grammar.errors)
 
+            println(PrettyPrintOberon.toString(grammar.tree))
+
             val typeErrors = Typecheck.process(grammar.tree)
             checkErrors(typeErrors)
 
