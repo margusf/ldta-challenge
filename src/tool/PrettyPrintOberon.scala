@@ -5,8 +5,6 @@ import Document._
 import java.io.Writer
 
 object PrettyPrintOberon {
-    val indent = 4
-
     def prettyPrint(module: Module, writer: Writer) {
         val doc = prettyPrint(module)
         doc.format(75, writer)
@@ -22,6 +20,7 @@ object PrettyPrintOberon {
     implicit def idToDoc(id: Id) = text(id.text)
     def concat(lst: List[Document]): Document =
         lst.foldLeft[Document](empty)(_ :: _)
+    def nest(doc: Document): Document = Document.nest(4, doc)
 
 //    implicit def strToDoc(str: String) = text(str)
 
@@ -29,9 +28,9 @@ object PrettyPrintOberon {
 
     def prettyPrint(module: Module): Document = {
         "MODULE" :: space :: module.name1 :: semicolon :: lineBreak ::
-            prettyPrint(module.decl) :: lineBreak ::
+            nest(prettyPrint(module.decl)) :: lineBreak ::
         "BEGIN" :: lineBreak ::
-            prettyPrint(module.statements) ::
+            nest(prettyPrint(module.statements)) ::
         "END" :: space :: module.name2 :: text(".")
     }
 
@@ -73,20 +72,20 @@ object PrettyPrintOberon {
             empty
         else
             "CONST" :: lineBreak ::
-                    concat(decl.consts.map(doConst))) ::
+                    nest(concat(decl.consts.map(doConst)))) ::
         (if (decl.types.isEmpty)
             empty
         else
             "TYPE" :: lineBreak ::
                 // types
-                empty
+                nest(empty)
                 ) ::
         (if (decl.vars.isEmpty)
             empty
         else
-            "CONST" :: lineBreak ::
+            "VAR" :: lineBreak ::
                 // vars
-                empty
+                nest(empty)
                 ) ::
         withSemicolons(decl.procedures.map(prettyPrint))
     }
@@ -106,10 +105,10 @@ object PrettyPrintOberon {
                 empty
 
         "PROCEDURE" :: space :: proc.name :: params :: semicolon :: lineBreak ::
-        prettyPrint(proc.decl) ::
+        nest(prettyPrint(proc.decl)) ::
         (if (proc.body ne null)
             "BEGIN" :: lineBreak ::
-                    prettyPrint(proc.body)
+                    nest(prettyPrint(proc.body))
         else
             empty) ::
         "END" :: space :: proc.name2
