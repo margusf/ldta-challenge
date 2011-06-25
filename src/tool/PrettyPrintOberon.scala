@@ -36,7 +36,7 @@ object PrettyPrintOberon {
 
     private def prettyPrint(statements: StatementSequence): Document =
         if (statements ne null)
-           withSemicolons(statements.stmt.map(prettyPrint))
+           withSemicolons(statements.stmt.map(prettyPrint)) :: lineBreak
         else
             empty
 
@@ -53,12 +53,54 @@ object PrettyPrintOberon {
         loop(lst)
     }
 
+    private def withCommas(lst: List[Document]): Document =
+        withSeparator(lst, "," :: space)
+
     private def withSemicolons(lst: List[Document],
                                withLineBreak: Boolean = true): Document =
         withSeparator(lst,
             semicolon :: (if (withLineBreak) lineBreak else space))
 
+    private def doElsif(elsif: (Expression, StatementSequence)): Document =
+        "ELSIF" :: space :: prettyPrint(elsif._1) :: lineBreak ::
+            nest(prettyPrint(elsif._2)) :: lineBreak
+
     private def prettyPrint(stmt: Statement): Document = stmt match {
+        case Assignment(left, right) =>
+            prettyPrint(left) :: space :: ":=" :: space :: prettyPrint(right)
+        case ProcedureCall(name, args) =>
+            name ::
+            (if (args.isEmpty)
+                empty
+            else
+                "(" :: withCommas(args.map(prettyPrint)) :: text(")"))
+        case IfStatement(cond, ifStmt, elseStmt) =>
+            "IF" :: space :: prettyPrint(cond.head) :: space ::
+                    "THEN" :: lineBreak ::
+                nest(prettyPrint(ifStmt.head)) ::
+            concat(cond.tail.zip(ifStmt.tail).map(doElsif)) ::
+            (if (elseStmt ne null)
+                "ELSE" :: lineBreak ::
+                        nest(prettyPrint(elseStmt))
+            else
+                empty) ::
+            text("END")
+        case WhileStatement(cond, body) =>
+            "WHILE" :: space :: prettyPrint(cond) :: space ::
+                    "DO" :: lineBreak ::
+                nest(prettyPrint(body)) ::
+            text("END")
+        case ForStatement(variable, start, direction, end, body) =>
+            "FOR" :: space :: variable :: space :: ":=" ::
+                    space :: prettyPrint(start) :: space ::
+                    (direction match {
+                        case To() => "TO"
+                        case DownTo() => "DOWNTO"
+                    }) :: space ::
+                    prettyPrint(end) :: space :: "DO" :: lineBreak ::
+                nest(prettyPrint(body)) ::
+            text("END")
+        // TODO: CaseStatement
         case _ => text("stmt")
     }
 //  Assignment
@@ -76,8 +118,7 @@ object PrettyPrintOberon {
             t.name :: space :: "=" :: space :: t.tValue ::
                     semicolon :: lineBreak
         def doVar(v: VarDef): Document =
-            withSeparator(v.vars.ids.map(idToDoc),
-                text(",") :: space) ::
+            withCommas(v.vars.ids.map(idToDoc)) ::
             ":" :: space :: v.varType :: semicolon :: lineBreak
 
         (if (decl.consts.isEmpty)
@@ -101,8 +142,7 @@ object PrettyPrintOberon {
     private def prettyPrint(proc: ProcedureDecl): Document = {
         def print(fp: FormalParam): Document = {
             (if (fp.pVar ne null) text("VAR") else empty) ::
-                    withSeparator(fp.ids.ids.map(idToDoc),
-                        text(",") :: space) ::
+                    withCommas(fp.ids.ids.map(idToDoc)) ::
                     ":" :: space :: fp.pType
         }
         def params: Document =
