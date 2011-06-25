@@ -61,12 +61,24 @@ object PrettyPrintOberon {
     private def prettyPrint(stmt: Statement): Document = stmt match {
         case _ => text("stmt")
     }
+//  Assignment
+//    | ProcedureCall
+//    | IfStatement
+//    | WhileStatement
+//    | ForStatement
+//    | CaseStatement;
 
     private def prettyPrint(decl: Declarations): Document = {
-        def doConst(c: ConstantDef) = {
+        def doConst(c: ConstantDef) =
             c.name :: space :: "=" :: space ::
                     prettyPrint(c.expr) :: semicolon :: lineBreak
-        }
+        def doType(t: TypeDef): Document =
+            t.name :: space :: "=" :: space :: t.tValue ::
+                    semicolon :: lineBreak
+        def doVar(v: VarDef): Document =
+            withSeparator(v.vars.ids.map(idToDoc),
+                text(",") :: space) ::
+            ":" :: space :: v.varType :: semicolon :: lineBreak
 
         (if (decl.consts.isEmpty)
             empty
@@ -77,16 +89,12 @@ object PrettyPrintOberon {
             empty
         else
             "TYPE" :: lineBreak ::
-                // types
-                nest(empty)
-                ) ::
+                nest(concat(decl.types.map(doType)))) ::
         (if (decl.vars.isEmpty)
             empty
         else
             "VAR" :: lineBreak ::
-                // vars
-                nest(empty)
-                ) ::
+                nest(concat(decl.vars.map(doVar)))) ::
         withSemicolons(decl.procedures.map(prettyPrint))
     }
 
