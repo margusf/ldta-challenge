@@ -65,6 +65,18 @@ object PrettyPrintOberon {
         "ELSIF" :: space :: prettyPrint(elsif._1) :: lineBreak ::
             nest(prettyPrint(elsif._2)) :: lineBreak
 
+    private def doCaseClause(clause: CaseClause): Document = {
+        def doConst(c: CaseConstant): Document =
+            c.begin.text ::
+                    (if(c.end ne null)
+                        ".." :: text(c.end.text)
+                    else
+                        empty)
+
+        withCommas(clause.items.map(doConst)) :: ":" :: lineBreak ::
+            nest(prettyPrint(clause.stmt))
+    }
+
     private def prettyPrint(stmt: Statement): Document = stmt match {
         case Assignment(left, right) =>
             prettyPrint(left) :: space :: ":=" :: space :: prettyPrint(right)
@@ -100,15 +112,17 @@ object PrettyPrintOberon {
                     prettyPrint(end) :: space :: "DO" :: lineBreak ::
                 nest(prettyPrint(body)) ::
             text("END")
-        // TODO: CaseStatement
+        case CaseStatement(expr, clauses, elseClause) =>
+            "CASE" :: space :: prettyPrint(expr) ::
+                    space :: "OF" :: lineBreak ::
+            concat(clauses.map(doCaseClause)) ::
+            (if (elseClause ne null)
+                "ELSE" :: lineBreak :: nest(prettyPrint(elseClause))
+            else
+                empty) ::
+            text("END")
         case _ => text("stmt")
     }
-//  Assignment
-//    | ProcedureCall
-//    | IfStatement
-//    | WhileStatement
-//    | ForStatement
-//    | CaseStatement;
 
     private def prettyPrint(decl: Declarations): Document = {
         def doConst(c: ConstantDef) =
