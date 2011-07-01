@@ -13,7 +13,7 @@ object PrettyPrintOberon {
     def toString(module: Module) = {
         val writer = new java.io.StringWriter
         val doc = prettyPrint(module)
-        doc.format(75, writer)
+        doc.format(40, writer)
         writer.toString
     }
 
@@ -178,6 +178,13 @@ object PrettyPrintOberon {
     }
 
     private def prettyPrint(expr: Expression): Document = expr match {
+        case Id(id) => text(id)
+        case NumberLit(n) => text(n)
+        case Unary(op, arg) => op.toString :: prettyPrint(arg)
+        // TODO: insert parentheses
+        case Binary(op, left, right) =>
+            prettyPrint(left) :: space :: op.toString ::
+                    space :: prettyPrint(right)
         case _ => text("expr")
     }
 }
