@@ -18,6 +18,51 @@ object Doc {
     val line = Line(false)
     val linebreak = Line(true)
 
+    val lparen = char('(')
+    val rparen = char(')')
+    val langle = char('<')
+    val rangle = char('>')
+    val lbrace = char('{')
+    val rbrace = char('}')
+    val lbracket = char('[')
+    val rbracket = char(']')
+
+    val squote = char('\'')
+    val dquote = char('"')
+    val semi = char(';')
+    val colon = char(':')
+    val comma = char(',')
+    val space = char(' ')
+    val dot = char('.')
+    val backslash = char('\\')
+    val equals = char('=')
+
+    val sep = (group _ compose vsep)
+    val fillSep = fold(_ :|: _) _
+    val hsep = fold(_ :+: _) _
+    val vsep = fold(_ :#: _) _
+
+    val cat = (group _ compose vcat)
+    val fillCat = fold(_ :||: _) _
+    val hcat = fold(_ :: _) _
+    val vcat = fold(_ :##: _) _
+
+    def fold(f: (Doc, Doc) => Doc)(lst: List[Doc]) = lst match {
+        case Nil => empty
+        case lst => lst.reduceLeft(f)
+    }
+
+    val softline = group(line)
+    val softbreak = group(linebreak)
+
+    val squotes = enclose(squote, squote) _
+    val dquotes = enclose(dquote, dquote) _
+    val braces = enclose(lbrace, rbrace) _
+    val parens = enclose(lparen, rparen) _
+    val angles = enclose(langle, rangle) _
+    val brackets = enclose(lbracket, rbracket) _
+    def enclose(l: Doc, r: Doc)(x: Doc) = l :: x :: r
+
     def beside(l: Doc, r: Doc) = Cat(l, r)
     def nest(indent: Int, doc: Doc) = Nest(indent, doc)
     def column(f: Int => Doc) = Column(f)
@@ -31,6 +76,43 @@ object Doc {
         case Union(x, y) => flatten(x)
         case Column(f) => Column(flatten _ compose f)
         case Nesting(f) => Nesting(flatten _  compose f)
+        case _ => doc
+    }
+
+    def fillBreak(f: Int, x: Doc) = {
+        def fun(w: Int) =
+            if (w > f)
+                nest(f, linebreak)
+            else
+                text(spaces(f - w))
+
+        width(x, fun)
+    }
+
+    def fill(f: Int, d: Doc) = {
+        def fun(w: Int) =
+            if (w >= f)
+                nest(f, linebreak)
+            else
+                text(spaces(f - w))
+
+        width(d, fun)
+    }
+
+    def width(d: Doc, fun: Int => Doc) = {
+        def fun(k1: Int): Doc =
+            d :: column(k2 => fun(k2 - k1))
+
+        column(fun)
+    }
+
+    def indent(i: Int, d: Doc) = hang(i, text(spaces(i)) :: d)
+    def hang(i: Int, d: Doc) = align(nest(i, d))
+    def align(d: Doc) = {
+        def fun(k: Int) =
+            nesting(k2 => nest(k - k2, d))
+
+        column(fun)
     }
 
     // Renderers
@@ -89,7 +171,7 @@ object Doc {
 
     def show(doc: Doc, width: Int): String = {
         val writer = new java.io.StringWriter
-        show(doc, 0.9, width, writer)
+        show(doc, 0.4, width, writer)
         writer.toString
     }
 
@@ -104,7 +186,7 @@ object Doc {
                 display(x)
             case SLine(i, x) =>
                 writer.write('\n')
-                spaces(i, writer)
+                writer.write(spaces(i))
                 display(x)
         }
 
@@ -112,19 +194,33 @@ object Doc {
         display(sdoc)
     }
 
-    private def spaces(n: Int, writer: Writer) {
+    private def spaces(n: Int) = {
+        val ret = new StringBuilder
+
         var rem = n
-        while (rem >= 16) { writer write "                "; rem -= 16 }
-        if (rem >= 8)     { writer write "        "; rem -= 8 }
-        if (rem >= 4)     { writer write "    "; rem -= 4 }
-        if (rem >= 2)     { writer write "  "; rem -= 2}
-        if (rem == 1)     { writer write " " }
+        while (rem >= 16) { ret append "                "; rem -= 16 }
+        if (rem >= 8)     { ret append "        "; rem -= 8 }
+        if (rem >= 4)     { ret append "    "; rem -= 4 }
+        if (rem >= 2)     { ret append "  "; rem -= 2}
+        if (rem == 1)     { ret append " " }
+
+        ret.toString
     }
 }
 
-abstract class Doc {
+sealed trait Doc {
+    import Doc._
+
     override def toString = Doc.show(this, 70)
+
+    def ::(x: Doc) = beside(x, this)
+    def :+:(x: Doc) = x :: space :: this
+    def :|:(x: Doc) = x :: softline :: this
+    def :||:(x: Doc) = x :: softbreak :: this
+    def :#:(x: Doc) = x :: line :: this
+    def :##:(x: Doc) = x :: linebreak :: this
 }
+
 case object Empty extends Doc
 case class DChar(c: Char) extends Doc
 case class Text(s: String) extends Doc
