@@ -1,5 +1,30 @@
 package ee.cyber.simplicitas.prettyprint
 
+// Adopted from PPrint library by Dan Leijen.
+// Original copyright:
+
+// Copyright 2000, Daan Leijen. All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+// * Redistributions of source code must retain the above copyright notice,
+//   this list of conditions and the following disclaimer.
+// * Redistributions in binary form must reproduce the above copyright notice,
+//   this list of conditions and the following disclaimer in the
+//   documentation and/or other materials provided with the distribution.
+//
+// This software is provided by the copyright holders “as is” and any
+// express or implied warranties, including, but not limited to, the implied
+// warranties of merchantability and fitness for a particular purpose are
+// disclaimed. In no event shall the copyright holders be liable for any
+// direct, indirect, incidental, special, exemplary, or consequential
+// damages (including, but not limited to, procurement of substitute
+// goods or services; loss of use, data, or profits; or business
+// interruption) however caused and on any theory of liability, whether
+// in contract, strict liability, or tort (including negligence or
+// otherwise) arising in any way out of the use of this software, even if
+// advised of the possibility of such damage.
+
 import java.io.Writer
 
 object Doc {
@@ -10,7 +35,7 @@ object Doc {
         case _ => DChar(c)
     }
 
-    def text(s: String) = s match {
+    implicit def text(s: String): Doc = s match {
         case "" => empty
         case _ => Text(s)
     }
@@ -42,7 +67,7 @@ object Doc {
     val hsep = fold(_ :+: _) _
     val vsep = fold(_ :#: _) _
 
-    val cat = (group _ compose vcat)
+    def cat(x: List[Doc]) = group(vcat(x))
     val fillCat = fold(_ :||: _) _
     val hcat = fold(_ :: _) _
     val vcat = fold(_ :##: _) _
@@ -52,14 +77,14 @@ object Doc {
         case lst => lst.reduceLeft(f)
     }
 
-    def punctuate(sep: Doc , items: List[Doc]) = {
-        def loop(lst: List[Doc]): List[Doc] = lst match {
-            case Nil => Nil
-            case List(d) => List(d)
-            case h :: t => (h :: sep) :: loop(lst)
+    def punctuate(sep: Doc , items: List[Doc]): Doc = {
+        def loop(lst: List[Doc]): Doc = lst match {
+            case Nil => empty
+            case List(d) => d
+            case h :: t => (h :: sep) :+: loop(t)
         }
 
-        cat(loop(items))
+       loop(items)
     }
 
     val softline = group(line)

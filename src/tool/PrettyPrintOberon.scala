@@ -1,189 +1,183 @@
 package ee.cyber.simplicitas.oberonexample
 
-import ee.cyber.simplicitas.prettyprint.Document
-import Document._
+import ee.cyber.simplicitas.prettyprint.Doc
+import Doc._
 import BinaryOp.precedence
 import java.io.Writer
 
 object PrettyPrintOberon {
     def prettyPrint(module: Module, writer: Writer) {
         val doc = prettyPrint(module)
-        doc.format(75, writer)
+        println("doc:\n\n" + doc)
+        show(doc, 0.8, 75, writer)
     }
 
     def toString(module: Module) = {
-        val writer = new java.io.StringWriter
         val doc = prettyPrint(module)
-        doc.format(40, writer)
-        writer.toString
+        doc.toString
     }
 
     implicit def idToDoc(id: Id) = text(id.text)
-    def concat(lst: List[Document]): Document =
-        lst.foldLeft[Document](empty)(_ :: _)
-    def nest(doc: Document): Document = Document.nest(4, doc)
+    def concat(lst: List[Doc]): Doc =
+        lst.foldLeft[Doc](empty)(_ :: _)
+
+    def nest(doc: Doc) = Doc.nest(4, doc)
 
 //    implicit def strToDoc(str: String) = text(str)
 
-    val semicolon = ";"
-
-    def prettyPrint(module: Module): Document = {
-        "MODULE" :: space :: module.name1 :: semicolon :: lineBreak ::
-            nest(prettyPrint(module.decl)) :: lineBreak ::
-        "BEGIN" :: lineBreak ::
+    def prettyPrint(module: Module): Doc = {
+        "MODULE" :+: module.name1 :: semi :#:
+            nest(prettyPrint(module.decl)) :#:
+        "BEGIN" :#:
             nest(prettyPrint(module.statements)) ::
-        "END" :: space :: module.name2 :: text(".")
+        "END" :+: module.name2 :: text(".")
     }
 
-    private def prettyPrint(statements: StatementSequence): Document =
+    private def prettyPrint(statements: StatementSequence): Doc =
         if (statements ne null)
-           withSemicolons(statements.stmt.map(prettyPrint)) :: lineBreak
+           punctuate(semi :: line, statements.stmt.map(prettyPrint))
         else
             empty
 
-    private def withSeparator(lst: List[Document], sep: Document): Document = {
-        def loop(lst: List[Document]): Document = lst match {
-            case Nil =>
-                empty
-            case h :: Nil =>
-                h
-            case h :: t =>
-                h :: sep :: loop(t)
-        }
+//    private def withSeparator(lst: List[Document], sep: Document): Document = {
+//        def loop(lst: List[Document]): Document = lst match {
+//            case Nil =>
+//                empty
+//            case h :: Nil =>
+//                h
+//            case h :: t =>
+//                h :: sep :: loop(t)
+//        }
+//
+//        loop(lst)
+//    }
 
-        loop(lst)
-    }
+    private def withCommas(lst: List[Doc]): Doc =
+        punctuate(comma, lst)
 
-    private def withCommas(lst: List[Document]): Document =
-        withSeparator(lst, "," :: space)
+//    private def withSemicolons(lst: List[Doc],
+//                               withLineBreak: Boolean = true): Document =
+//        withSeparator(lst,
+//            semicolon :: (if (withLineBreak) lineBreak else space))
 
-    private def withSemicolons(lst: List[Document],
-                               withLineBreak: Boolean = true): Document =
-        withSeparator(lst,
-            semicolon :: (if (withLineBreak) lineBreak else space))
+    private def doElsif(elsif: (Expression, StatementSequence)): Doc =
+        "ELSIF" :+: prettyPrint(elsif._1) :#:
+            nest(prettyPrint(elsif._2)) :: line
 
-    private def doElsif(elsif: (Expression, StatementSequence)): Document =
-        "ELSIF" :: space :: prettyPrint(elsif._1) :: lineBreak ::
-            nest(prettyPrint(elsif._2)) :: lineBreak
-
-    private def doCaseClause(clause: CaseClause): Document = {
-        def doConst(c: CaseConstant): Document =
+    private def doCaseClause(clause: CaseClause): Doc = {
+        def doConst(c: CaseConstant): Doc =
             c.begin.text ::
                     (if(c.end ne null)
                         ".." :: text(c.end.text)
                     else
                         empty)
 
-        withCommas(clause.items.map(doConst)) :: ":" :: lineBreak ::
+        withCommas(clause.items.map(doConst)) :: ":" :#:
             nest(prettyPrint(clause.stmt))
     }
 
-    private def prettyPrint(stmt: Statement): Document = stmt match {
+    private def prettyPrint(stmt: Statement): Doc = stmt match {
         case Assignment(left, right) =>
-            prettyPrint(left) :: space :: ":=" :: space :: prettyPrint(right)
+            prettyPrint(left) :+: ":=" :+: prettyPrint(right)
         case ProcedureCall(name, args) =>
             name ::
             (if (args.isEmpty)
                 empty
             else
-                "(" :: withCommas(args.map(prettyPrint)) :: text(")"))
+                parens(withCommas(args.map(prettyPrint))))
         case IfStatement(cond, ifStmt, elseStmt) =>
-            "IF" :: space :: prettyPrint(cond.head) :: space ::
-                    "THEN" :: lineBreak ::
+            "IF" :+: prettyPrint(cond.head) :+:
+                    "THEN" :#:
                 nest(prettyPrint(ifStmt.head)) ::
             concat(cond.tail.zip(ifStmt.tail).map(doElsif)) ::
             (if (elseStmt ne null)
-                "ELSE" :: lineBreak ::
+                "ELSE" :#:
                         nest(prettyPrint(elseStmt))
             else
                 empty) ::
             text("END")
         case WhileStatement(cond, body) =>
-            "WHILE" :: space :: prettyPrint(cond) :: space ::
-                    "DO" :: lineBreak ::
+            "WHILE" :+: prettyPrint(cond) :+:
+                    "DO" :#:
                 nest(prettyPrint(body)) ::
             text("END")
         case ForStatement(variable, start, direction, end, body) =>
-            "FOR" :: space :: variable :: space :: ":=" ::
-                    space :: prettyPrint(start) :: space ::
+            "FOR" :+: variable :+: ":=" :+:
+                    prettyPrint(start) :+:
                     (direction match {
                         case To() => "TO"
                         case DownTo() => "DOWNTO"
                     }) :: space ::
-                    prettyPrint(end) :: space :: "DO" :: lineBreak ::
+                    prettyPrint(end) :+: "DO" :#:
                 nest(prettyPrint(body)) ::
             text("END")
         case CaseStatement(expr, clauses, elseClause) =>
-            "CASE" :: space :: prettyPrint(expr) ::
-                    space :: "OF" :: lineBreak ::
+            "CASE" :+: prettyPrint(expr) :+: "OF" :#:
             concat(clauses.map(doCaseClause)) ::
             (if (elseClause ne null)
-                "ELSE" :: lineBreak :: nest(prettyPrint(elseClause))
+                "ELSE" :#: nest(prettyPrint(elseClause))
             else
                 empty) ::
             text("END")
         case _ => text("stmt")
     }
 
-    private def prettyPrint(decl: Declarations): Document = {
+    private def prettyPrint(decl: Declarations): Doc = {
         def doConst(c: ConstantDef) =
-            c.name :: space :: "=" :: space ::
-                    prettyPrint(c.expr) :: semicolon :: lineBreak
-        def doType(t: TypeDef): Document =
-            t.name :: space :: "=" :: space :: t.tValue ::
-                    semicolon :: lineBreak
-        def doVar(v: VarDef): Document =
+            c.name :+: "=" :+: prettyPrint(c.expr) :: semi :: line
+        def doType(t: TypeDef): Doc =
+            t.name :+: "=" :+: t.tValue :: semi :: line
+        def doVar(v: VarDef): Doc =
             withCommas(v.vars.ids.map(idToDoc)) ::
-            ":" :: space :: v.varType :: semicolon :: lineBreak
+                ":" :+: v.varType :: semi :: line
 
         (if (decl.consts.isEmpty)
             empty
         else
-            "CONST" :: lineBreak ::
+            "CONST" :#:
                     nest(concat(decl.consts.map(doConst)))) ::
         (if (decl.types.isEmpty)
             empty
         else
-            "TYPE" :: lineBreak ::
+            "TYPE" :: line ::
                 nest(concat(decl.types.map(doType)))) ::
         (if (decl.vars.isEmpty)
             empty
         else
-            "VAR" :: lineBreak ::
+            "VAR" :: line ::
                 nest(concat(decl.vars.map(doVar)))) ::
-        withSemicolons(decl.procedures.map(prettyPrint))
+        punctuate(semi :: line, decl.procedures.map(prettyPrint))
     }
 
-    private def prettyPrint(proc: ProcedureDecl): Document = {
-        def print(fp: FormalParam): Document = {
+    private def prettyPrint(proc: ProcedureDecl): Doc = {
+        def print(fp: FormalParam): Doc = {
             (if (fp.pVar ne null) text("VAR") else empty) ::
                     withCommas(fp.ids.ids.map(idToDoc)) ::
-                    ":" :: space :: fp.pType
+                    ":" :+: fp.pType
         }
-        def params: Document =
+        def params: Doc =
             if ((proc.params ne null) && !proc.params.isEmpty)
-                "(" :: withSemicolons(proc.params.map(print), false) ::
-                        text(")")
+                parens(punctuate(semi, proc.params.map(print)))
             else
                 empty
 
-        "PROCEDURE" :: space :: proc.name :: params :: semicolon :: lineBreak ::
+        "PROCEDURE" :+: proc.name :: params :: semi :: line ::
         nest(prettyPrint(proc.decl)) ::
         (if (proc.body ne null)
-            "BEGIN" :: lineBreak ::
+            "BEGIN" :#:
                     nest(prettyPrint(proc.body))
         else
             empty) ::
-        "END" :: space :: proc.name2
+        "END" :+: proc.name2
 
     }
 
-    private def prettyPrint(expr: Expression): Document = {
+    private def prettyPrint(expr: Expression): Doc = {
         def wrapIfNeeded(expr: Expression, parentOp: Any) = expr match {
             case Unary(op, _) if (precedence(op) < precedence(parentOp)) =>
-                "(" :: prettyPrint(expr) :: text(")")
+                parens(prettyPrint(expr))
             case Binary(op, _, _) if (precedence(op) < precedence(parentOp)) =>
-                "(" :: prettyPrint(expr) :: text(")")
+                parens(prettyPrint(expr))
             case _ =>
                 prettyPrint(expr)
         }
@@ -194,14 +188,14 @@ object PrettyPrintOberon {
             case Unary(op, arg) =>
                 val argPP = arg match {
                     case Binary(_, _, _) =>
-                        "(" :: prettyPrint(arg) :: text(")")
+                        parens(prettyPrint(arg))
                     case _ =>
                          prettyPrint(arg)
                 }
                 op.toString :: argPP
             case Binary(op, left, right) =>
-                wrapIfNeeded(left, op) :: space :: op.toString ::
-                        space :: wrapIfNeeded(right, op)
+                wrapIfNeeded(left, op) :+: op.toString :+:
+                        wrapIfNeeded(right, op)
             case _ => text("expr")
         }
     }
