@@ -52,6 +52,16 @@ object Doc {
         case lst => lst.reduceLeft(f)
     }
 
+    def punctuate(sep: Doc , items: List[Doc]) = {
+        def loop(lst: List[Doc]): List[Doc] = lst match {
+            case Nil => Nil
+            case List(d) => List(d)
+            case h :: t => (h :: sep) :: loop(lst)
+        }
+
+        cat(loop(items))
+    }
+
     val softline = group(line)
     val softbreak = group(linebreak)
 
