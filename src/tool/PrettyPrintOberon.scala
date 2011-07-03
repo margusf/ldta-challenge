@@ -2,6 +2,7 @@ package ee.cyber.simplicitas.oberonexample
 
 import ee.cyber.simplicitas.prettyprint.Document
 import Document._
+import BinaryOp.precedence
 import java.io.Writer
 
 object PrettyPrintOberon {
@@ -177,14 +178,31 @@ object PrettyPrintOberon {
 
     }
 
-    private def prettyPrint(expr: Expression): Document = expr match {
-        case Id(id) => text(id)
-        case NumberLit(n) => text(n)
-        case Unary(op, arg) => op.toString :: prettyPrint(arg)
-        // TODO: insert parentheses
-        case Binary(op, left, right) =>
-            prettyPrint(left) :: space :: op.toString ::
-                    space :: prettyPrint(right)
-        case _ => text("expr")
+    private def prettyPrint(expr: Expression): Document = {
+        def wrapIfNeeded(expr: Expression, parentOp: Any) = expr match {
+            case Unary(op, _) if (precedence(op) < precedence(parentOp)) =>
+                "(" :: prettyPrint(expr) :: text(")")
+            case Binary(op, _, _) if (precedence(op) < precedence(parentOp)) =>
+                "(" :: prettyPrint(expr) :: text(")")
+            case _ =>
+                prettyPrint(expr)
+        }
+
+        expr match {
+            case Id(id) => text(id)
+            case NumberLit(n) => text(n)
+            case Unary(op, arg) =>
+                val argPP = arg match {
+                    case Binary(_, _, _) =>
+                        "(" :: prettyPrint(arg) :: text(")")
+                    case _ =>
+                         prettyPrint(arg)
+                }
+                op.toString :: argPP
+            case Binary(op, left, right) =>
+                wrapIfNeeded(left, op) :: space :: op.toString ::
+                        space :: wrapIfNeeded(right, op)
+            case _ => text("expr")
+        }
     }
 }

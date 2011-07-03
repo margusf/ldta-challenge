@@ -3,7 +3,7 @@ MODULE Simple;
         VAR
             z: INTEGER;
     BEGIN
-        z := x + 20;
+        z := x + 20 * (1 + 2) - 3 * 4 + (-5) + (- (- 4) * 6) & (4 OR 4) + 4 & 3;
 		IF y THEN
 			z := 10
 		ELSIF z = 0 THEN

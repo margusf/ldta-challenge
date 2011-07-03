@@ -23,6 +23,14 @@ object BinaryOp extends Enumeration {
 
     val And = Value("&")
     val Or = Value("OR")
+
+    val precedence = Map[Any, Int](
+        LessThan -> 1, LessEqual -> 1, GreaterThan -> 1, Equals -> 1,
+            NotEquals -> 1,
+        UnaryOp.Pos -> 2, UnaryOp.Neg -> 2,
+        Plus -> 3, Minus -> 3, Or -> 3,
+        Times -> 4, Div -> 4, Mod -> 4, And -> 4,
+        UnaryOp.Not -> 5)
 }
 
 case class Unary(op: UnaryOp.Type, arg: Expression) extends Expression {
