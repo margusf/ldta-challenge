@@ -21,39 +21,29 @@ object PrettyPrintOberon {
     def concat(lst: List[Doc]): Doc =
         lst.foldLeft[Doc](empty)(_ :: _)
 
-    def nest(doc: Doc) = Doc.nest(4, doc)
+    def indent(doc: Doc) = Doc.indent(4, doc)
 
 //    implicit def strToDoc(str: String) = text(str)
 
     def prettyPrint(module: Module): Doc = {
         "MODULE" :+: module.name1 :: semi :#:
-            nest(prettyPrint(module.decl)) :#:
+            prettyPrint(module.decl) ::
         "BEGIN" :#:
-            nest(prettyPrint(module.statements)) ::
+            prettyPrint(module.statements) ::
         "END" :+: module.name2 :: text(".")
     }
 
     private def prettyPrint(statements: StatementSequence): Doc =
         if (statements ne null)
-           punctuate(semi :: line, statements.stmt.map(prettyPrint))
+           indent(
+               punctuate(semi :: line,
+                   statements.stmt.map(prettyPrint))) ::
+           line
         else
             empty
 
-//    private def withSeparator(lst: List[Document], sep: Document): Document = {
-//        def loop(lst: List[Document]): Document = lst match {
-//            case Nil =>
-//                empty
-//            case h :: Nil =>
-//                h
-//            case h :: t =>
-//                h :: sep :: loop(t)
-//        }
-//
-//        loop(lst)
-//    }
-
     private def withCommas(lst: List[Doc]): Doc =
-        punctuate(comma, lst)
+        punctuate(comma :: space, lst)
 
 //    private def withSemicolons(lst: List[Doc],
 //                               withLineBreak: Boolean = true): Document =
@@ -62,7 +52,7 @@ object PrettyPrintOberon {
 
     private def doElsif(elsif: (Expression, StatementSequence)): Doc =
         "ELSIF" :+: prettyPrint(elsif._1) :#:
-            nest(prettyPrint(elsif._2)) :: line
+            prettyPrint(elsif._2)
 
     private def doCaseClause(clause: CaseClause): Doc = {
         def doConst(c: CaseConstant): Doc =
@@ -73,7 +63,7 @@ object PrettyPrintOberon {
                         empty)
 
         withCommas(clause.items.map(doConst)) :: ":" :#:
-            nest(prettyPrint(clause.stmt))
+            prettyPrint(clause.stmt)
     }
 
     private def prettyPrint(stmt: Statement): Doc = stmt match {
@@ -88,65 +78,70 @@ object PrettyPrintOberon {
         case IfStatement(cond, ifStmt, elseStmt) =>
             "IF" :+: prettyPrint(cond.head) :+:
                     "THEN" :#:
-                nest(prettyPrint(ifStmt.head)) ::
+                prettyPrint(ifStmt.head) ::
             concat(cond.tail.zip(ifStmt.tail).map(doElsif)) ::
             (if (elseStmt ne null)
                 "ELSE" :#:
-                        nest(prettyPrint(elseStmt))
+                        prettyPrint(elseStmt)
             else
                 empty) ::
-            text("END")
+            "END"
         case WhileStatement(cond, body) =>
             "WHILE" :+: prettyPrint(cond) :+:
                     "DO" :#:
-                nest(prettyPrint(body)) ::
-            text("END")
+                prettyPrint(body) ::
+            "END"
         case ForStatement(variable, start, direction, end, body) =>
             "FOR" :+: variable :+: ":=" :+:
                     prettyPrint(start) :+:
                     (direction match {
                         case To() => "TO"
                         case DownTo() => "DOWNTO"
-                    }) :: space ::
+                    }) :+:
                     prettyPrint(end) :+: "DO" :#:
-                nest(prettyPrint(body)) ::
-            text("END")
+                prettyPrint(body) ::
+            "END"
         case CaseStatement(expr, clauses, elseClause) =>
             "CASE" :+: prettyPrint(expr) :+: "OF" :#:
             concat(clauses.map(doCaseClause)) ::
             (if (elseClause ne null)
-                "ELSE" :#: nest(prettyPrint(elseClause))
+                "ELSE" :#: prettyPrint(elseClause)
             else
                 empty) ::
-            text("END")
-        case _ => text("stmt")
+            "END"
     }
 
     private def prettyPrint(decl: Declarations): Doc = {
         def doConst(c: ConstantDef) =
-            c.name :+: "=" :+: prettyPrint(c.expr) :: semi :: line
+            c.name :+: "=" :+: prettyPrint(c.expr)
         def doType(t: TypeDef): Doc =
-            t.name :+: "=" :+: t.tValue :: semi :: line
+            t.name :+: "=" :+: t.tValue
         def doVar(v: VarDef): Doc =
-            withCommas(v.vars.ids.map(idToDoc)) ::
-                ":" :+: v.varType :: semi :: line
+            withCommas(v.vars.ids.map(idToDoc)) :: ":" :+: v.varType
 
-        (if (decl.consts.isEmpty)
-            empty
-        else
-            "CONST" :#:
-                    nest(concat(decl.consts.map(doConst)))) ::
-        (if (decl.types.isEmpty)
-            empty
-        else
-            "TYPE" :: line ::
-                nest(concat(decl.types.map(doType)))) ::
-        (if (decl.vars.isEmpty)
-            empty
-        else
-            "VAR" :: line ::
-                nest(concat(decl.vars.map(doVar)))) ::
-        punctuate(semi :: line, decl.procedures.map(prettyPrint))
+        val body =
+            (if (decl.consts.isEmpty)
+                empty
+            else
+                "CONST" :#:
+                        indent(
+                            punctuate(semi :: line,
+                                decl.consts.map(doConst)))) :#:
+            (if (decl.types.isEmpty)
+                empty
+            else
+                "TYPE" :#:
+                    indent(
+                        punctuate(semi :: line, decl.types.map(doType)))) :#:
+            (if (decl.vars.isEmpty)
+                empty
+            else
+                "VAR" :: line ::
+                    indent(
+                        punctuate(semi :: line, decl.vars.map(doVar)))) :#:
+            punctuate(semi :: line, decl.procedures.map(prettyPrint))
+
+        indent(body) :: line
     }
 
     private def prettyPrint(proc: ProcedureDecl): Doc = {
@@ -157,15 +152,15 @@ object PrettyPrintOberon {
         }
         def params: Doc =
             if ((proc.params ne null) && !proc.params.isEmpty)
-                parens(punctuate(semi, proc.params.map(print)))
+                parens(punctuate(semi :: space, proc.params.map(print)))
             else
                 empty
 
         "PROCEDURE" :+: proc.name :: params :: semi :: line ::
-        nest(prettyPrint(proc.decl)) ::
+        prettyPrint(proc.decl) ::
         (if (proc.body ne null)
             "BEGIN" :#:
-                    nest(prettyPrint(proc.body))
+                    prettyPrint(proc.body)
         else
             empty) ::
         "END" :+: proc.name2

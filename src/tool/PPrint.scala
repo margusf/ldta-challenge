@@ -81,7 +81,7 @@ object Doc {
         def loop(lst: List[Doc]): Doc = lst match {
             case Nil => empty
             case List(d) => d
-            case h :: t => (h :: sep) :+: loop(t)
+            case h :: t => h :: sep :: loop(t)
         }
 
        loop(items)
