@@ -20,9 +20,9 @@ object PrettyPrintC {
     def prettyPrint(module: Module): Doc = {
         "// Module " :: module.name :#:
         "#include <stdio.h>" :#:
-        hcat(module.consts.map(prettyPrint)) :#:
-        hcat(module.vars.map(prettyPrint)) :#:
-        hcat(module.procedures.map(prettyPrint))
+        vcat(module.consts.map(prettyPrint)) :#:
+        vcat(module.vars.map(prettyPrint)) :#:
+        vcat(module.procedures.map(prettyPrint))
     }
 
     private def indent(doc: Doc) = Doc.indent(4, doc)

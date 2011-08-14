@@ -16,7 +16,16 @@ object Codegen {
         println(generateDecl(ctx, module.decl))
 
         val stmt = generateStatements(module.statements)
-        println(stmt)
+        if (stmt != gen.Nop()) {
+            if (ctx.topLevel.exists(_.name == "main")) {
+                throw new Exception(
+                    "Procedure main exists and module body is not empty")
+            } else {
+                ctx.addToplevel(gen.ProcDecl("main",
+                    List(gen.Arg("int", "argc"), gen.Arg("argv", "char **")),
+                    List(stmt)))
+            }
+        }
 
         gen.Module(module.name1.text, Nil, Nil, ctx.topLevel.toList)
     }

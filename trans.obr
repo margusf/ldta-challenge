@@ -1,9 +1,18 @@
 MODULE Simple;
     PROCEDURE Test(x: INTEGER; y: BOOLEAN);
-        VAR
+   		CONST
+			yy = 30;
+   		VAR
             z: INTEGER;
+
+		PROCEDURE Inner(y: INTEGER; VAR foo: INTEGER);
+		BEGIN
+			foo := y + x
+		END Inner;
+
     BEGIN
         z := x + 20 * x + 4 * (4 + (-3));
+		Inner(x, x);
 		IF y THEN
 			z := 10
 		ELSIF z = 0 THEN
@@ -12,4 +21,6 @@ MODULE Simple;
 			z := 12
 		END
     END Test;
+BEGIN
+	Test(10, 1 = 1)
 END Simple.
