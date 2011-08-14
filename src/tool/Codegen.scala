@@ -45,28 +45,23 @@ object Codegen {
     }
 
     def generateProcedure(ctx: GenCtx, proc: ProcedureDecl) {
-        val (params, pTypes) = getParameters(proc)
-
         val body = new ArrayBuffer[gen.Stmt]
         body ++= generateDecl(ctx, proc.decl)
         body += generateStatements(proc.body)
 
-        // TODO: add procedure to toplevel.
         ctx.addToplevel(
-            gen.ProcDecl(proc.name.text, params, pTypes, body.toList))
+            gen.ProcDecl(proc.name.text, getParameters(proc), body.toList))
     }
 
     private def getParameters(proc: ProcedureDecl) = {
-        val params = new ArrayBuffer[String]
-        val pTypes = new ArrayBuffer[String]
+        val params = new ArrayBuffer[gen.Arg]
 
         for (fp <- proc.params; p <- fp.ids.ids) {
             // TODO: deal with var parameters
-            params += p.text
             // TODO: use actual type instead of type name.
-            pTypes += fp.pType.text
+            params += gen.Arg(p.text, fp.pType.text)
         }
-        (params.toList, pTypes.toList)
+        params.toList
     }
 
     private def generateStatements(stmt: StatementSequence) =

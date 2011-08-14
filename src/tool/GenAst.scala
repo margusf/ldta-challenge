@@ -14,9 +14,9 @@ case class Module(name: String,
 case class ConstDecl(name: String, cType: String, value: Expr) extends Stmt
 case class VarDecl(name: String, vType: String) extends Stmt
 case class ProcDecl(name: String,
-                    args: List[String],
-                    argTypes: List[String],
+                    args: List[Arg],
                     body: List[Stmt])
+case class Arg(name: String, argType: String)
 
 abstract class Stmt extends Gen
 case class Nop() extends Stmt

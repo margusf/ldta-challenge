@@ -27,18 +27,20 @@ object PrettyPrintC {
 
     private def indent(doc: Doc) = Doc.indent(4, doc)
 
-    private def prettyPrint(cd: ConstDecl) =
+    private def prettyPrint(cd: ConstDecl): Doc =
         text("const")
 
-    private def prettyPrint(cd: VarDecl) =
+    private def prettyPrint(cd: VarDecl): Doc =
         text("var")
 
-    private def prettyPrint(cd: ProcDecl) = {
-        val args = cd.args.map(text)
+    private def prettyPrint(cd: ProcDecl): Doc = {
+        val args = cd.args.map(prettyPrint)
 
         "void" :+: cd.name :: parens(withCommas(args)) :+: "{" :#:
             indent("...") :#:
         text("}")
     }
-}
 
+    private def prettyPrint(arg: Arg): Doc =
+        arg.argType :+: text(arg.name)
+}
