@@ -1,6 +1,7 @@
 package ee.cyber.simplicitas.oberonexample
 
 import ee.cyber.simplicitas.CommonNode
+import ast._
 
 class Env(parent: Env,
           defs: Map[String, Tuple2[CommonNode, OType]],

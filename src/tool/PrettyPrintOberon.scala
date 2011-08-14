@@ -1,9 +1,11 @@
 package ee.cyber.simplicitas.oberonexample
 
+import java.io.Writer
+
 import ee.cyber.simplicitas.prettyprint.Doc
+import ast._
 import Doc._
 import BinaryOp.precedence
-import java.io.Writer
 
 object PrettyPrintOberon {
     def prettyPrint(module: Module, writer: Writer) {
@@ -41,9 +43,6 @@ object PrettyPrintOberon {
            line
         else
             empty
-
-    private def withCommas(lst: List[Doc]): Doc =
-        punctuate(comma :: space, lst)
 
 //    private def withSemicolons(lst: List[Doc],
 //                               withLineBreak: Boolean = true): Document =

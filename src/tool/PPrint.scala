@@ -87,6 +87,9 @@ object Doc {
        loop(items)
     }
 
+    def withCommas(lst: List[Doc]): Doc =
+        punctuate(comma :: space, lst)
+
     val softline = group(line)
     val softbreak = group(linebreak)
 

@@ -1,22 +1,24 @@
 package ee.cyber.simplicitas.oberonexample
 
 import collection.mutable.ArrayBuffer
+import ast._
 
 object Codegen {
-    def generate(module: Module) {
+    def generate(module: Module): gen.Module = {
         val ctx = new GenCtx
-        generateModule(ctx, module)
+        val ret = generateModule(ctx, module)
 
         println(ctx.topLevel)
+        ret
     }
 
-    private def generateModule(ctx: GenCtx, module: Module) {
+    private def generateModule(ctx: GenCtx, module: Module): gen.Module = {
         println(generateDecl(ctx, module.decl))
 
         val stmt = generateStatements(module.statements)
         println(stmt)
 
-        gen.Module(module.name1.text, null, null, null)
+        gen.Module(module.name1.text, Nil, Nil, ctx.topLevel.toList)
     }
 
     private def generateDecl(ctx: GenCtx,

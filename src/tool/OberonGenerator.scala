@@ -4,17 +4,16 @@ import ee.cyber.simplicitas.{GeneratorBase, MainBase, PrettyPrint}
 
 class OberonGenerator(destDir: String)
         extends GeneratorBase(destDir) {
-    def generate(tree: Module) {
-        Codegen.generate(tree)
-
-//        println(PrettyPrint.prettyPrint(tree))
+    def generate(tree: ast.Module) {
+        val genTree = Codegen.generate(tree)
+        println(PrettyPrintC.toString(genTree))
     }
 }
 
 object OberonMain extends MainBase {
     def main(argv: Array[String]) {
         parseOptions(argv)
-        val grammar = new OberonGrammar()
+        val grammar = new ast.OberonGrammar()
         for (arg <- sources) {
             grammar.parseFile(arg)
             checkErrors(grammar.errors)

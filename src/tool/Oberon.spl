@@ -1,4 +1,4 @@
-grammar ee.cyber.simplicitas.oberonexample.Oberon;
+grammar ee.cyber.simplicitas.oberonexample.ast.Oberon;
 
 scalaheader {
 import OberonExtras._

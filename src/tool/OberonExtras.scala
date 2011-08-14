@@ -1,4 +1,4 @@
-package ee.cyber.simplicitas.oberonexample
+package ee.cyber.simplicitas.oberonexample.ast
 
 case class Binary(op: BinaryOp.Type, left: Expression, right: Expression)
         extends Expression {

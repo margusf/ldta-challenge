@@ -1,0 +1,15 @@
+MODULE Simple;
+    PROCEDURE Test(x: INTEGER; y: BOOLEAN);
+        VAR
+            z: INTEGER;
+    BEGIN
+        z := x + 20 * x;
+		IF y THEN
+			z := 10
+		ELSIF z = 0 THEN
+			z := 11
+		ELSE
+			z := 12
+		END
+    END Test;
+END Simple.

@@ -2,7 +2,7 @@ package ee.cyber.simplicitas.oberonexample
 
 import collection.mutable.ArrayBuffer
 import ee.cyber.simplicitas.{SourceLocation, CommonNode, SourceMessage}
-
+import ast._
 
 object Typecheck {
     def process(module: Module): List[SourceMessage] = {
