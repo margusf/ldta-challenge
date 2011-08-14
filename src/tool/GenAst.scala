@@ -20,9 +20,9 @@ case class Arg(name: String, argType: String)
 
 abstract class Stmt extends Gen
 case class Nop() extends Stmt
-case class Sequence(items: Seq[Stmt]) extends Stmt
+case class Sequence(items: List[Stmt]) extends Stmt
 case class Assign(id: String, value: Expr) extends Stmt
 case class If(cond: Expr, ifStmt: Stmt, elseStmt: Stmt) extends Stmt
 
 abstract class Expr extends Stmt // all expressions can be used as statements
-case class FunCall(name: String, args: Seq[Expr]) extends Expr
+case class FunCall(name: String, args: List[Expr]) extends Expr

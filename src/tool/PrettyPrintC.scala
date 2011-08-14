@@ -37,10 +37,40 @@ object PrettyPrintC {
         val args = cd.args.map(prettyPrint)
 
         "void" :+: cd.name :: parens(withCommas(args)) :+: "{" :#:
-            indent("...") :#:
+            indent(vcat(cd.body.map(prettyPrint))) :#:
         text("}")
     }
 
     private def prettyPrint(arg: Arg): Doc =
         arg.argType :+: text(arg.name)
+
+    private def prettyPrint(stmt: Stmt): Doc = stmt match {
+        case Nop() => empty
+        case Sequence(items) =>
+            vcat(items.map(prettyPrint))
+        case Assign(id, value) =>
+            id :+: "=" :+: prettyPrint(value) :: semi
+        case If(cond, ifStmt, elseStmt) =>
+            "if" :+: parens(prettyPrint(cond)) :+: "{" :#:
+                indent(prettyPrint(ifStmt)) :#:
+            (if (elseStmt ne null)
+                "}" :+: "else" :+: "{" :#:
+                    indent(prettyPrint(ifStmt)) :: line
+            else
+                empty) ::
+            text("}")
+        case ConstDecl(name, cType, value) =>
+            cType :+: name :+: "=" :+: prettyPrint(value) :: semi
+        case VarDecl(name, vType) =>
+            vType :+: name :: semi
+        case expr: Expr =>
+            prettyPrint(expr) :: semi
+        case _ => text("stmt") :: semi
+    }
+
+    private def prettyPrint(expr: Expr): Doc = expr match {
+        case FunCall(name, args) =>
+            name :: parens(withCommas(args.map(prettyPrint)))
+        case _ => text("expr")
+    }
 }
