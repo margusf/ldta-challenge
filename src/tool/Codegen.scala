@@ -101,8 +101,40 @@ object Codegen {
         case _ => null
     }
 
-    def generateExpr(expr: Expression): gen.Expr =
-        null
+    def generateExpr(expr: Expression): gen.Expr = expr match {
+        case Id(name) =>
+            gen.Id(name)
+        case Binary(op, left, right) =>
+            gen.Binary(cBinOps(op), generateExpr(left), generateExpr(right))
+        case Unary(op, arg) =>
+            gen.Unary(cUnOps(op), generateExpr(arg))
+        case NumberLit(value) =>
+            gen.NumberLit(value.toInt)
+        case _ =>
+            throw new IllegalArgumentException(expr.toString)
+    }
+
+    val cBinOps = Map(
+        BinaryOp.Plus -> "+",
+        BinaryOp.Minus -> "-",
+        BinaryOp.Times -> "*",
+        BinaryOp.Div -> "/",
+        BinaryOp.Mod -> "%",
+        BinaryOp.LessThan -> "<",
+        BinaryOp.LessEqual -> "<=",
+        BinaryOp.GreaterThan -> ">",
+        BinaryOp.GreaterEqual -> ">=",
+        BinaryOp.Equals -> "==",
+        BinaryOp.NotEquals -> "!=",
+        BinaryOp.And -> "&&",
+        BinaryOp.Or -> "||"
+    )
+
+    val cUnOps = Map(
+        UnaryOp.Pos -> "",
+        UnaryOp.Not -> "!",
+        UnaryOp.Neg -> "-"
+    )
 }
 
 class GenCtx {

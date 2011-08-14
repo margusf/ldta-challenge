@@ -68,9 +68,44 @@ object PrettyPrintC {
         case _ => text("stmt") :: semi
     }
 
-    private def prettyPrint(expr: Expr): Doc = expr match {
-        case FunCall(name, args) =>
-            name :: parens(withCommas(args.map(prettyPrint)))
-        case _ => text("expr")
+    private def prettyPrint(expr: Expr): Doc = {
+        def wrapIfNeeded(expr: Expr, parentOp: String) = expr match {
+            case Unary(op, _) if (precedence(op) < precedence(parentOp)) =>
+                parens(prettyPrint(expr))
+            case Binary(op, _, _) if (precedence(op) < precedence(parentOp)) =>
+                parens(prettyPrint(expr))
+            case _ =>
+                prettyPrint(expr)
+        }
+
+
+        expr match {
+            case FunCall(name, args) =>
+                name :: parens(withCommas(args.map(prettyPrint)))
+            case Id(name) => text(name)
+            case NumberLit(value) => text(value.toString)
+            case Unary(op, arg) =>
+                val argPP = arg match {
+                    case Binary(_, _, _) =>
+                        parens(prettyPrint(arg))
+                    case _ =>
+                         prettyPrint(arg)
+                }
+                op.toString :: argPP
+            case Binary(op, left, right) =>
+                wrapIfNeeded(left, op) :+: op.toString :+:
+                        wrapIfNeeded(right, op)
+
+            case _ => text("expr")
+        }
     }
+
+    val precedence = Map(
+        "||" -> 1,
+        "&&" -> 2,
+        "<" -> 3, "<=" -> 3, ">" -> 3, ">=" -> 3, "==" -> 3, "!=" -> 3,
+        "" -> 4,
+        "+" -> 4, "-" -> 4,
+        "/" -> 5, "*" -> 5, "%" -> 5,
+        "!" -> 6)
 }
