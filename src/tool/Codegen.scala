@@ -117,7 +117,11 @@ object Codegen {
             }
 
             gen.For(pre, cond, post, generateStatements(body))
-
+        // Case statement is translated to series of if statements because
+        // C case does not support ranges.
+//        case CaseStatement(expr, clauses, elseStmt) =>
+//            gen.If()
+//
 //    | CaseStatement
         case _ => null
     }
