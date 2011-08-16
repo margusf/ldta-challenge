@@ -59,16 +59,37 @@ object PrettyPrintC {
             else
                 empty) ::
             text("}")
+        case While(cond, body) =>
+            "while" :+: parens(prettyPrint(cond)) :+: "{" :#:
+                indent(prettyPrint(body)) :#:
+            text("}")
+        case For(pre, cond, post, body) =>
+            "for" :+: parens(
+                    prettyPrint(pre) :+:
+                    prettyPrint(cond) :: semi :+:
+                    prettyPrintFp(post)) :+: "{" :#:
+                indent(prettyPrint(body)) :#:
+            text("}")
         case ConstDecl(name, cType, value) =>
             cType :+: name :+: "=" :+: prettyPrint(value) :: semi
         case VarDecl(name, vType) =>
             vType :+: name :: semi
         case expr: Expr =>
             prettyPrint(expr) :: semi
+        case fp: ForPost =>
+            prettyPrintFp(fp) :: semi
         case _ => text("stmt") :: semi
     }
 
+    private def prettyPrintFp(fp: ForPost): Doc = fp match {
+        case Inc(id, value) =>
+            id :+: "+=" :+: prettyPrint(value)
+        case Dec(id, value) =>
+            id :+: "-=" :+: prettyPrint(value)
+    }
+
     private def prettyPrint(expr: Expr): Doc = {
+        // TODO: copypaste of Oberon pretty-printer
         def wrapIfNeeded(expr: Expr, parentOp: String) = expr match {
             case Unary(op, _) if (precedence(op) < precedence(parentOp)) =>
                 parens(prettyPrint(expr))
@@ -77,7 +98,6 @@ object PrettyPrintC {
             case _ =>
                 prettyPrint(expr)
         }
-
 
         expr match {
             case FunCall(name, args) =>

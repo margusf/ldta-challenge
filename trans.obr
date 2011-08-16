@@ -7,7 +7,15 @@ MODULE Simple;
 
 		PROCEDURE Inner(y: INTEGER; VAR foo: INTEGER);
 		BEGIN
-			foo := y + x
+			foo := y + x;
+			FOR y := 1 TO 10 DO
+				foo := y
+			END;
+			WHILE 1 = 2 DO
+				FOR y := 10 DOWNTO 1 DO
+					foo := y
+				END
+			END
 		END Inner;
 
     BEGIN

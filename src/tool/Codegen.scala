@@ -103,9 +103,21 @@ object Codegen {
 
             loop(cond, ifStmt)
         }
+        case WhileStatement(cond, body) =>
+            gen.While(generateExpr(cond), generateStatements(body))
+        case ForStatement(Id(id), start, direction, end, body) =>
+            val pre = gen.Assign(id, generateExpr(start))
+            val endExpr = generateExpr(end)
+            val incr = gen.NumberLit(1)
+            val (cond, post) = direction match {
+                case To() =>
+                    (gen.Binary("<=", gen.Id(id), endExpr), gen.Inc(id, incr))
+                case DownTo() =>
+                    (gen.Binary(">=", gen.Id(id), endExpr), gen.Dec(id, incr))
+            }
 
-//    | WhileStatement
-//    | ForStatement
+            gen.For(pre, cond, post, generateStatements(body))
+
 //    | CaseStatement
         case _ => null
     }
