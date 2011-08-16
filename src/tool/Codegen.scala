@@ -13,7 +13,7 @@ object Codegen {
     }
 
     private def generateModule(ctx: GenCtx, module: Module): gen.Module = {
-        println(generateDecl(ctx, module.decl))
+//        println(generateDecl(ctx, module.decl))
 
         val stmt = generateStatements(module.statements)
         if (stmt != gen.Nop()) {
