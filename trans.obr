@@ -22,6 +22,14 @@ MODULE Simple;
 			END
 		END Inner;
 
+		PROCEDURE InnerCase();
+		BEGIN
+			CASE 1 + 2 OF
+				3:
+					Write(3);
+			END
+		END InnerCase;
+
     BEGIN
         z := x + 20 * x + 4 * (4 + (-3));
 		Inner(x, x);
@@ -31,6 +39,9 @@ MODULE Simple;
 			z := 11
 		ELSE
 			z := 12
+		END;
+		IF y THEN
+			z := 10
 		END
     END Test;
 BEGIN

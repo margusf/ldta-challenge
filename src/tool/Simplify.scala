@@ -40,11 +40,25 @@ class Simplify(module: Module) {
 
     private def doStmt(stmt: Statement,
                       old: Tuple2[List[VarDef], List[Statement]]):
-            Tuple2[List[VarDef], List[Statement]]=
+            Tuple2[List[VarDef], List[Statement]] = {
+        val oldVars = old._1
+        val oldBody = old._2
         stmt match {
+            case CaseStatement(expr, clauses, elseClause) =>
+                // Artificial variable for case expression
+                val exprVar = newId
+                val exprDef = VarDef(IdentList(List(Id(exprVar))), Id("TODO!"))
+
+                val ifStmt = IfStatement(
+                    List(Id(exprVar)),
+                    List(StatementSequence(List(ProcedureCall(Id("Foo"), Nil)))),
+                    elseClause)
+                (exprDef :: oldVars,
+                        Assignment(Id(exprVar), expr) :: ifStmt :: oldBody)
             case _ =>
-                (old._1, stmt :: old._2)
+                (oldVars, stmt :: oldBody)
         }
+    }
 
     private def doProcedures(procList: List[ProcedureDecl]) {
         for (proc <- procList) {
