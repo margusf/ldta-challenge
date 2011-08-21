@@ -1,4 +1,8 @@
 MODULE Simple;
+	CONST globConst = 555;
+
+	VAR globInt: INTEGER;
+
     PROCEDURE Test(x: INTEGER; y: BOOLEAN);
    		CONST
 			yy = 30;
