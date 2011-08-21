@@ -20,18 +20,11 @@ object PrettyPrintC {
     def prettyPrint(module: Module): Doc = {
         "// Module " :: module.name :#:
         "#include <stdio.h>" :#:
-        vcat(module.consts.map(prettyPrint)) :#:
-        vcat(module.vars.map(prettyPrint)) :#:
+        vcat(module.globals.map(prettyPrint)) :#:
         vcat(module.procedures.map(prettyPrint))
     }
 
     private def indent(doc: Doc) = Doc.indent(4, doc)
-
-    private def prettyPrint(cd: ConstDecl): Doc =
-        text("const")
-
-    private def prettyPrint(cd: VarDecl): Doc =
-        text("var")
 
     private def prettyPrint(cd: ProcDecl): Doc = {
         val args = cd.args.map(prettyPrint)

@@ -25,7 +25,10 @@ object Codegen {
             }
         }
 
-        gen.Module(module.name1.text, Nil, Nil, procedures)
+        gen.Module(
+                module.name1.text,
+                generateDecl(module.decl).toList,
+                procedures)
     }
 
     private def generateDecl(decl: Declarations): Seq[gen.Stmt] = {

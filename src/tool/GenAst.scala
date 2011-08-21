@@ -7,8 +7,7 @@ abstract class Gen {
 }
 
 case class Module(name: String,
-                  consts: List[ConstDecl],
-                  vars: List[VarDecl],
+                  globals: List[Stmt],
                   procedures: List[ProcDecl])
 
 case class ConstDecl(name: String, cType: String, value: Expr) extends Stmt
