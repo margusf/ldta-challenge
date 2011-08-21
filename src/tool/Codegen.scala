@@ -5,37 +5,30 @@ import ast._
 
 object Codegen {
     def generate(module: Module): gen.Module = {
-        val ctx = new GenCtx
-        val ret = generateModule(ctx, module)
-
-        println(ctx.topLevel)
-        ret
+        generateModule(module)
     }
 
-    private def generateModule(ctx: GenCtx, module: Module): gen.Module = {
-//        println(generateDecl(ctx, module.decl))
+    private def generateModule(module: Module): gen.Module = {
+        var procedures = module.decl.procedures.map(generateProcedure)
 
         val stmt = generateStatements(module.statements)
         if (stmt != gen.Nop()) {
-            if (ctx.topLevel.exists(_.name == "main")) {
+            if (module.decl.procedures.exists(_.name == "main")) {
                 throw new Exception(
                     "Procedure main exists and module body is not empty")
             } else {
-                ctx.addToplevel(gen.ProcDecl("main",
-                    List(gen.Arg("int", "argc"), gen.Arg("argv", "char **")),
-                    List(stmt)))
+                procedures =
+                    gen.ProcDecl("main",
+                        List(gen.Arg("int", "argc"),
+                            gen.Arg("argv", "char **")),
+                        List(stmt)) :: procedures
             }
         }
 
-        gen.Module(module.name1.text, Nil, Nil, ctx.topLevel.toList)
+        gen.Module(module.name1.text, Nil, Nil, procedures)
     }
 
-    private def generateDecl(ctx: GenCtx,
-                             decl: Declarations): Seq[gen.Stmt] = {
-        for (proc <- decl.procedures) {
-            generateProcedure(ctx, proc)
-        }
-
+    private def generateDecl(decl: Declarations): Seq[gen.Stmt] = {
         val body = new ArrayBuffer[gen.Stmt]
 
         for (varDecl <- decl.vars; id <- varDecl.vars.ids) {
@@ -53,13 +46,12 @@ object Codegen {
         body
     }
 
-    def generateProcedure(ctx: GenCtx, proc: ProcedureDecl) {
+    def generateProcedure(proc: ProcedureDecl) = {
         val body = new ArrayBuffer[gen.Stmt]
-        body ++= generateDecl(ctx, proc.decl)
+        body ++= generateDecl(proc.decl)
         body += generateStatements(proc.body)
 
-        ctx.addToplevel(
-            gen.ProcDecl(proc.name.text, getParameters(proc), body.toList))
+        gen.ProcDecl(proc.name.text, getParameters(proc), body.toList)
     }
 
     private def getParameters(proc: ProcedureDecl) = {
@@ -160,12 +152,4 @@ object Codegen {
         UnaryOp.Not -> "!",
         UnaryOp.Neg -> "-"
     )
-}
-
-class GenCtx {
-    val topLevel = new ArrayBuffer[gen.ProcDecl]
-
-    def addToplevel(proc: gen.ProcDecl) {
-        topLevel += proc
-    }
 }

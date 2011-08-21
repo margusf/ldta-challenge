@@ -18,18 +18,15 @@ class Simplify(module: Module) {
     var currentId = 0
 
     def apply(): Module = {
-        val vars =
-            if (module.decl ne null)
-                module.decl.vars
-            else
-                Nil
-        val (newVars, newBody) = doBody(vars, module.statements)
+        doProcedures(module.decl.procedures)
+        val (newVars, newBody) =
+            doBody(module.decl.vars, module.statements)
         Module(module.name1,
             Declarations(
                 module.decl.consts,
                 module.decl.types,
                 newVars,
-                module.decl.procedures), // TODO: include new toplevel stuff
+                topLevel.toList),
             StatementSequence(newBody),
             module.name2)
     }
@@ -48,6 +45,25 @@ class Simplify(module: Module) {
             case _ =>
                 (old._1, stmt :: old._2)
         }
+
+    private def doProcedures(procList: List[ProcedureDecl]) {
+        for (proc <- procList) {
+            doProcedures(proc.decl.procedures)
+            val (newVars, newBody) =
+                    doBody(proc.decl.vars, proc.body)
+
+            topLevel += ProcedureDecl(
+                    proc.name,
+                    proc.params,
+                    Declarations(
+                            proc.decl.consts,
+                            proc.decl.types,
+                            newVars,
+                            Nil),
+                    StatementSequence(newBody),
+                    proc.name2)
+        }
+    }
 
     private def newId = {
         currentId += 1
