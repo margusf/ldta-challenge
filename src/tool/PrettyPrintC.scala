@@ -48,7 +48,7 @@ object PrettyPrintC {
                 indent(prettyPrint(ifStmt)) :#:
             (if (elseStmt ne null)
                 "}" :+: "else" :+: "{" :#:
-                    indent(prettyPrint(ifStmt)) :: line
+                    indent(prettyPrint(elseStmt)) :: line
             else
                 empty) ::
             text("}")
