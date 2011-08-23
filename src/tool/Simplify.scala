@@ -32,15 +32,32 @@ class Simplify(module: Module) {
     }
 
     private def doBody(vars: List[VarDef], body: StatementSequence):
-            Tuple2[List[VarDef], List[Statement]] =
+            (List[VarDef], List[Statement]) =
         if ((body eq null) || (body.stmt eq null))
             (vars, Nil)
         else
-            body.stmt.foldRight[Tuple2[List[VarDef], List[Statement]]]((vars, Nil))(doStmt)
+            body.stmt.foldRight[(List[VarDef], List[Statement])]((vars, Nil))(doStmt)
+
+    private def caseClause(id: String)(clause: CaseClause) = {
+        def doConst(c: CaseConstant) =
+            if (c.end ne null)
+                Binary(BinaryOp.And,
+                    Binary(BinaryOp.GreaterEqual, Id(id), c.begin),
+                    Binary(BinaryOp.LessEqual, Id(id), c.end))
+            else
+                Binary(BinaryOp.Equals, Id(id), c.begin)
+
+        // List of comparison operators
+        val exprList = clause.items.map(doConst)
+        // Or the operators together.
+        val expr = exprList.reduceLeft(Binary(BinaryOp.Or, _, _))
+
+        (expr, clause.stmt)
+    }
 
     private def doStmt(stmt: Statement,
-                      old: Tuple2[List[VarDef], List[Statement]]):
-            Tuple2[List[VarDef], List[Statement]] = {
+                      old: (List[VarDef], List[Statement])):
+            (List[VarDef], List[Statement]) = {
         val oldVars = old._1
         val oldBody = old._2
         stmt match {
@@ -49,9 +66,13 @@ class Simplify(module: Module) {
                 val exprVar = newId
                 val exprDef = VarDef(IdentList(List(Id(exprVar))), Id("TODO!"))
 
+                val ifClauses = clauses.map(caseClause(exprVar))
+                val ifConds = ifClauses.map(_._1)
+                val ifStatements = ifClauses.map(_._2)
+
                 val ifStmt = IfStatement(
-                    List(Id(exprVar)),
-                    List(StatementSequence(List(ProcedureCall(Id("Foo"), Nil)))),
+                    ifConds,
+                    ifStatements,
                     elseClause)
                 (exprDef :: oldVars,
                         Assignment(Id(exprVar), expr) :: ifStmt :: oldBody)
