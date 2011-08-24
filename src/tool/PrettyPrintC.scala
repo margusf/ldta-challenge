@@ -46,12 +46,17 @@ object PrettyPrintC {
         case If(cond, ifStmt, elseStmt) =>
             "if" :+: parens(prettyPrint(cond)) :+: "{" :#:
                 indent(prettyPrint(ifStmt)) :#:
-            (if (elseStmt ne null)
-                "}" :+: "else" :+: "{" :#:
-                    indent(prettyPrint(elseStmt)) :: line
-            else
-                empty) ::
-            text("}")
+            "}" :+:
+            (elseStmt match {
+                case null =>
+                    empty
+                case If(_, _, _) =>
+                    "else" :+: prettyPrint(elseStmt)
+                case _ =>
+                    "else" :+: "{" :#:
+                        indent(prettyPrint(elseStmt)) :#:
+                    text("}")
+            })
         case While(cond, body) =>
             "while" :+: parens(prettyPrint(cond)) :+: "{" :#:
                 indent(prettyPrint(body)) :#:
