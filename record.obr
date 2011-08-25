@@ -1,3 +1,35 @@
 MODULE Simple;
-	TYPE Blaah = 
+	TYPE
+		IntArr = ARRAY 10 OF INTEGER;
+		Blaah = RECORD
+			x, y: INTEGER;
+			z: IntArr
+		END;
+
+	VAR
+		p, t: Blaah;
+		a: ARRAY 5 OF Blaah;
+		s: RECORD
+			x: Blaah;
+			y: RECORD
+				a, b: INTEGER
+			END;
+			z: ARRAY 5 OF
+				RECORD
+					a, b: Blaah
+				END
+		END;
+		i1, i2: INTEGER;
+		b1, b2: BOOLEAN;
+BEGIN
+	i1 := 10;
+	b1 := 1 = 2;
+	p.x := i1 + 10;
+	a[p.x] := p;
+	s.x := s.z[2].a;
+	i1[10] := 22;
+	a[b1] := 33;
+	a[3] := b1;
+	p.ff := 33;
+	p.x := s.z.a
 END Simple.

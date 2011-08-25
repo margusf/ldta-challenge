@@ -26,17 +26,17 @@ class Typecheck {
         }
     }
 
+    def checkBoolean(expr: Expression, env: Env) {
+        val exprType = processExpr(expr, env)
+        checkType(Types.bool, exprType, expr)
+    }
+
+    def checkInteger(expr: Expression, env: Env) {
+        val exprType = processExpr(expr, env)
+        checkType(Types.int, exprType, expr)
+    }
+
     def processStatement(stm: Statement, env: Env) {
-        def checkBoolean(expr: Expression, env: Env) {
-            val exprType = processExpr(expr, env)
-            checkType(Types.bool, exprType, expr)
-        }
-
-        def checkInteger(expr: Expression, env: Env) {
-            val exprType = processExpr(expr, env)
-            checkType(Types.int, exprType, expr)
-        }
-
         stm match {
             case Assignment(left, right) =>
                 val leftType = processExpr(left, env)
@@ -108,13 +108,17 @@ class Typecheck {
         newEnv
     }
 
+    def doField(env: Env)(f: FieldList) = {
+        f.ids.ids.map(
+            (id: Id) => OField(id.text, typeValue(f.idType, env)))
+    }
+
     // Convert parsed TypeValue to OType.
     def typeValue(tv: TypeValue, env: Env): OType = tv match {
         case id @ Id(_) =>
             getType(id, env)
         case RecordType(fields) =>
-            // TODO
-            ORecord(Nil)
+            ORecord(fields.flatMap(doField(env)))
         case ArrayType(expr, base) =>
             OArray(typeValue(base, env))
     }
@@ -178,12 +182,33 @@ class Typecheck {
                 processFunCall(op.toString, List(arg))
             case NumberLit(_) =>
                 Types.int
-//            case ArrayAccess(array, index) =>
-//                processExpr(array, env)
-//                processExpr(index, env)
-//            case RecordAccess(record, field) =>
-//                processExpr(record, env)
-//                // TODO: check field against type.
+            case ArrayAccess(array, index) =>
+                checkInteger(index, env)
+                processExpr(array, env) match {
+                    case OArray(base) =>
+                        base
+                    case err =>
+                        println("notarray: " + array + "   " + err)
+                        addError("Indexed item is not array", array)
+                        Types.invalid
+                }
+            case RecordAccess(record, field) =>
+                val recType = processExpr(record, env)
+                recType match {
+                    case ORecord(fields) =>
+                        fields.find(_.name == field.text) match {
+                            case Some(f) =>
+                                f.fType
+                            case _ =>
+                                println("fieldnotfound: " + record + "   " + recType)
+                                addError("Record does not contain field " + field.text, field)
+                                Types.invalid
+                        }
+
+                    case _ =>
+                        addError("Not a record", expr)
+                        Types.invalid
+                }
             case _ =>
                 throw new IllegalArgumentException(expr.toString)
         }
