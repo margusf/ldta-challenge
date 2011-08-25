@@ -108,10 +108,9 @@ class Typecheck {
         newEnv
     }
 
-    def doField(env: Env)(f: FieldList) = {
+    def doField(env: Env)(f: FieldList) =
         f.ids.ids.map(
             (id: Id) => OField(id.text, typeValue(f.idType, env)))
-    }
 
     // Convert parsed TypeValue to OType.
     def typeValue(tv: TypeValue, env: Env): OType = tv match {
