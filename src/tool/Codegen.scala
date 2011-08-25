@@ -36,7 +36,8 @@ object Codegen {
 
         for (varDecl <- decl.vars; id <- varDecl.vars.ids) {
             // TODO: convert to C type.
-            body += gen.VarDecl(id.text, varDecl.varType.text)
+            // TODO: correct type.
+            body += gen.VarDecl(id.text, "TODO:TYPE")
         }
 
         for (constDecl <- decl.consts) {
@@ -63,7 +64,9 @@ object Codegen {
         for (fp <- proc.params; p <- fp.ids.ids) {
             // TODO: deal with var parameters
             // TODO: use actual type instead of type name.
-            params += gen.Arg(p.text, fp.pType.text)
+
+            // TODO: reinstate
+//            params += gen.Arg(p.text, fp.pType.text)
         }
         params.toList
     }

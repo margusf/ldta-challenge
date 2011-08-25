@@ -38,4 +38,27 @@ case class OProc(args: Seq[OType]) extends OType {
     def assignableFrom(other: OType) = true
 }
 
-// TODO: deal with constants and named types.
+case class OArray(base: OType) extends OType {
+    def assignableFrom(other: OType) = other match {
+        case OArray(otherBase) =>
+            base.assignableFrom(otherBase)
+        case _ =>
+            false
+    }
+}
+
+case class ORecord(fields: Seq[OField]) extends OType {
+    private def fieldAssignable(f: (OField, OField)) = {
+        val (my, other) = f
+        my.name == other.name && my.fType.assignableFrom(other.fType)
+    }
+    def assignableFrom(other: OType) = other match {
+        case ORecord(oFields) =>
+            fields.length == oFields.length &&
+                fields.zip(oFields).forall(fieldAssignable)
+        case _ =>
+            false
+    }
+}
+
+case class OField(name: String, fType: OType)

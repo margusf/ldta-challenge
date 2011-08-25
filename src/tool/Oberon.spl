@@ -19,7 +19,7 @@ option Expression
     : Id;
 
 ConstantDef: name=Id EqOp expr=CompExpr ";";
-VarDef: vars=IdentList ":" varType=Id ";";
+VarDef: vars=IdentList ":" varType=TypeValue ";";
 ProcedureDecl:
     "PROCEDURE" name=Id
         ("(" (params=FormalParam (";" params=FormalParam)*)? ")")?
@@ -28,7 +28,7 @@ ProcedureDecl:
     ("BEGIN"
         body=StatementSequence)?
     "END" name2=Id;
-FormalParam: pVar="VAR"? ids=IdentList ":" pType=Id;
+FormalParam: pVar="VAR"? ids=IdentList ":" pType=TypeValue;
 
 Declarations:
     ("CONST"
@@ -39,7 +39,16 @@ Declarations:
         vars=VarDef*)?
     (procedures=ProcedureDecl ";")*;
 
-TypeDef: name=Id "=" tValue=Id ";";
+TypeDef: name=Id "=" tValue=TypeValue ";";
+
+option TypeValue:
+    Id
+    | RecordType
+    | ArrayType;
+
+RecordType: "RECORD" fields=FieldList (";" fields=FieldList)* "END";
+FieldList: ids=IdentList ":" idType=TypeValue;
+ArrayType: "ARRAY" size=PlusExpr "OF" baseType=TypeValue;
 
 CompExpr
     returns Expression {makeBinary(op, left, right)}

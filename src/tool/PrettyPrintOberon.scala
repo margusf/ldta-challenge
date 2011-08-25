@@ -114,9 +114,11 @@ object PrettyPrintOberon {
         def doConst(c: ConstantDef) =
             c.name :+: "=" :+: prettyPrint(c.expr)
         def doType(t: TypeDef): Doc =
-            t.name :+: "=" :+: t.tValue
+            // TODO
+            t.name :+: "=" :+: text("TODO")
         def doVar(v: VarDef): Doc =
-            withCommas(v.vars.ids.map(idToDoc)) :: ":" :+: v.varType
+            // TODO
+            withCommas(v.vars.ids.map(idToDoc)) :: ":" :+: "TODO"
 
         val body =
             (if (decl.consts.isEmpty)
@@ -147,7 +149,8 @@ object PrettyPrintOberon {
         def print(fp: FormalParam): Doc = {
             (if (fp.pVar ne null) text("VAR") else empty) ::
                     withCommas(fp.ids.ids.map(idToDoc)) ::
-                    ":" :+: fp.pType
+                    // TODO
+                    ":" :+: "TODO"
         }
         def params: Doc =
             if ((proc.params ne null) && !proc.params.isEmpty)

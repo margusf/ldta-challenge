@@ -89,7 +89,7 @@ class Typecheck {
         var newEnv = env
 
         for (td <- decl.types) {
-            newEnv = newEnv.addType(td.name.text, getType(td.tValue, newEnv))
+            newEnv = newEnv.addType(td.name.text, typeValue(td.tValue, newEnv))
         }
 
         for (cd <- decl.consts) {
@@ -98,7 +98,7 @@ class Typecheck {
         }
 
         for (vd <- decl.vars; id <- vd.vars.ids) {
-            newEnv = newEnv.addPrimitive(id, getType(vd.varType, newEnv))
+            newEnv = newEnv.addPrimitive(id, typeValue(vd.varType, newEnv))
         }
 
         for (pd <- decl.procedures) {
@@ -106,6 +106,17 @@ class Typecheck {
         }
 
         newEnv
+    }
+
+    // Convert parsed TypeValue to OType.
+    def typeValue(tv: TypeValue, env: Env): OType = tv match {
+        case id @ Id(_) =>
+            getType(id, env)
+        case RecordType(fields) =>
+            // TODO
+            ORecord(Nil)
+        case ArrayType(expr, base) =>
+            OArray(typeValue(base, env))
     }
 
     def processProcedureDecl(pd: ProcedureDecl, env: Env) = {
@@ -116,7 +127,7 @@ class Typecheck {
         for (fp <- pd.params;
              if fp ne null;
              id <- fp.ids.ids) {
-            val paramType = getType(fp.pType, bodyEnv)
+            val paramType = typeValue(fp.pType, bodyEnv)
             bodyEnv = bodyEnv.addPrimitive(id, paramType)
             paramTypes += paramType
         }
@@ -127,6 +138,7 @@ class Typecheck {
         newEnv.addProc(pd.name, paramTypes)
     }
 
+    /** Reads type from environment. */
     def getType(id: Id, env: Env) = env.getType(id.text) match {
         case Some(t) => t
         case None =>
