@@ -22,7 +22,7 @@ sealed trait ForPost
 abstract class Stmt extends Gen
 case class Nop() extends Stmt
 case class Sequence(items: List[Stmt]) extends Stmt
-case class Assign(id: String, value: Expr) extends Stmt
+case class Assign(lhs: Expr, value: Expr) extends Stmt
 case class If(cond: Expr, ifStmt: Stmt, elseStmt: Stmt) extends Stmt
 case class While(cond: Expr, body: Stmt) extends Stmt
 case class For(pre: Stmt, cond: Expr, post: ForPost, body: Stmt) extends Stmt
@@ -36,3 +36,5 @@ case class Id(name: String) extends Expr
 case class NumberLit(value: Int) extends Expr
 case class Binary(op: String, left: Expr, right: Expr) extends Expr
 case class Unary(op: String, arg: Expr) extends Expr
+case class ArrayAccess(array: Expr, index: Expr) extends Expr
+case class RecordAccess(record: Expr, field: String) extends Expr

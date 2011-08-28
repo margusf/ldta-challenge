@@ -41,8 +41,8 @@ object PrettyPrintC {
         case Nop() => empty
         case Sequence(items) =>
             vcat(items.map(prettyPrint))
-        case Assign(id, value) =>
-            id :+: "=" :+: prettyPrint(value) :: semi
+        case Assign(lhs, value) =>
+            prettyPrint(lhs) :+: "=" :+: prettyPrint(value) :: semi
         case If(cond, ifStmt, elseStmt) =>
             "if" :+: parens(prettyPrint(cond)) :+: "{" :#:
                 indent(prettyPrint(ifStmt)) :#:
@@ -76,7 +76,9 @@ object PrettyPrintC {
             prettyPrint(expr) :: semi
         case fp: ForPost =>
             prettyPrintFp(fp) :: semi
-        case _ => text("stmt") :: semi
+        case _ =>
+            println("Unknown: " + stmt)
+            text("stmt") :: semi
     }
 
     private def prettyPrintFp(fp: ForPost): Doc = fp match {
@@ -113,7 +115,10 @@ object PrettyPrintC {
             case Binary(op, left, right) =>
                 wrapIfNeeded(left, op) :+: op.toString :+:
                         wrapIfNeeded(right, op)
-
+            case RecordAccess(rec, field) =>
+                prettyPrint(rec) :: "." :: text(field)
+            case ArrayAccess(array, index) =>
+                prettyPrint(array) :: brackets(prettyPrint(index))
             case _ => text("expr")
         }
     }

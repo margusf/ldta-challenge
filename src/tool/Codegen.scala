@@ -78,8 +78,10 @@ object Codegen {
             gen.Sequence(stmt.stmt.map(generateStatement))
 
     private def generateStatement(stmt: Statement): gen.Stmt = stmt match {
-        case Assignment(Id(id), right) =>
-            gen.Assign(id, generateExpr(right))
+        case Assignment(lhs, right) =>
+            // Assume that the LHS part is an expression that can be used
+            // as LHS.
+            gen.Assign(generateExpr(lhs), generateExpr(right))
         case ProcedureCall(Id(name), args) =>
             // TODO: add additional arguments corresponding to
             // variables defined in outer scope.
@@ -104,7 +106,7 @@ object Codegen {
         case WhileStatement(cond, body) =>
             gen.While(generateExpr(cond), generateStatements(body))
         case ForStatement(Id(id), start, direction, end, body) =>
-            val pre = gen.Assign(id, generateExpr(start))
+            val pre = gen.Assign(gen.Id(id), generateExpr(start))
             val endExpr = generateExpr(end)
             val incr = gen.NumberLit(1)
             val (cond, post) = direction match {
@@ -117,11 +119,9 @@ object Codegen {
             gen.For(pre, cond, post, generateStatements(body))
         // Case statement is translated to series of if statements because
         // C case does not support ranges.
-//        case CaseStatement(expr, clauses, elseStmt) =>
-//            gen.If()
-//
-//    | CaseStatement
-        case _ => null
+        case _ =>
+            println("Unknown: " + stmt)
+            null
     }
 
     def generateExpr(expr: Expression): gen.Expr = expr match {
@@ -133,6 +133,10 @@ object Codegen {
             gen.Unary(cUnOps(op), generateExpr(arg))
         case NumberLit(value) =>
             gen.NumberLit(value.toInt)
+        case RecordAccess(rec, Id(field)) =>
+            gen.RecordAccess(generateExpr(rec), field)
+        case ArrayAccess(arr, index) =>
+            gen.ArrayAccess(generateExpr(arr), generateExpr(index))
         case _ =>
             throw new IllegalArgumentException(expr.toString)
     }
