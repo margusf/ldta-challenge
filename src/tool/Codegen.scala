@@ -26,7 +26,7 @@ object Codegen {
             } else {
                 procedures =
                     gen.ProcDecl("main",
-                        List(gen.Arg("argc", "argv"),
+                        List(gen.Arg("argc", "int"),
                             gen.Arg("argv", "char **")),
                         List(stmt)) :: procedures
             }

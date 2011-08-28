@@ -4,12 +4,13 @@ import ee.cyber.simplicitas.{GeneratorBase, MainBase, PrettyPrint}
 
 class OberonGenerator(destDir: String)
         extends GeneratorBase(destDir) {
-    def generate(tree: ast.Module) {
+    def generate(sourceFile: String, tree: ast.Module) {
         val simplified = Simplify.simplify(tree)
         println(PrettyPrintOberon.toString(simplified))
 
+        val cFile = sourceFile.replaceAll(".obr$", ".c")
         val genTree = Codegen.generate(simplified)
-        println(PrettyPrintC.toString(genTree))
+        writeFile(cFile, PrettyPrintC.toString(genTree))
     }
 }
 
@@ -24,7 +25,7 @@ object OberonMain extends MainBase {
             val typeErrors = Typecheck.process(grammar.tree)
             checkErrors(typeErrors)
 
-            new OberonGenerator(destDir).generate(grammar.tree)
+            new OberonGenerator(destDir).generate(arg, grammar.tree)
         }
     }
 }
