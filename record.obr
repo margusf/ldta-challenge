@@ -1,5 +1,6 @@
 MODULE Simple;
 	TYPE
+		ArrArr = ARRAY 1 OF ARRAY 2 OF ARRAY 3 OF INTEGER;
 		IntArr = ARRAY 10 OF INTEGER;
 		Blaah = RECORD
 			x, y: INTEGER;

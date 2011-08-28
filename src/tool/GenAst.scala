@@ -1,6 +1,7 @@
 package ee.cyber.simplicitas.oberonexample.gen
 
 import collection.mutable.ArrayBuffer
+import ee.cyber.simplicitas.oberonexample.OType
 
 abstract class Gen {
     def gen(buf: StringBuilder) {}
@@ -11,7 +12,7 @@ case class Module(name: String,
                   procedures: List[ProcDecl])
 
 case class ConstDecl(name: String, cType: String, value: Expr) extends Stmt
-case class VarDecl(name: String, vType: String) extends Stmt
+case class VarDecl(name: String, vType: OType) extends Stmt
 case class ProcDecl(name: String,
                     args: List[Arg],
                     body: List[Stmt])
@@ -26,6 +27,7 @@ case class Assign(lhs: Expr, value: Expr) extends Stmt
 case class If(cond: Expr, ifStmt: Stmt, elseStmt: Stmt) extends Stmt
 case class While(cond: Expr, body: Stmt) extends Stmt
 case class For(pre: Stmt, cond: Expr, post: ForPost, body: Stmt) extends Stmt
+case class Typedef(name: String, typeValue: OType) extends Stmt
 
 case class Inc(id: String, value: Expr) extends Stmt with ForPost
 case class Dec(id: String, value: Expr) extends Stmt with ForPost

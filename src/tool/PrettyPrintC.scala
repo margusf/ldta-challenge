@@ -71,7 +71,9 @@ object PrettyPrintC {
         case ConstDecl(name, cType, value) =>
             cType :+: name :+: "=" :+: prettyPrint(value) :: semi
         case VarDecl(name, vType) =>
-            vType :+: name :: semi
+            prettyPrint(name, vType) :: semi
+        case Typedef(name, tType) =>
+            "typedef" :+: prettyPrint(name, tType) :: semi
         case expr: Expr =>
             prettyPrint(expr) :: semi
         case fp: ForPost =>
@@ -79,6 +81,20 @@ object PrettyPrintC {
         case _ =>
             println("Unknown: " + stmt)
             text("stmt") :: semi
+    }
+
+    private def prettyPrint(f: OField): Doc =
+        prettyPrint(f.name, f.fType) :: semi
+
+    private def prettyPrint(arg: String, t: OType): Doc = t match {
+        case ORef(id) => id :+: text(arg)
+        case OCArray(base, size) =>
+            prettyPrint("xxx", base) :+: arg :: brackets(prettyPrint(size))
+        case ORecord(fields) =>
+            "struct" :+: "{" :#:
+                indent(fields.map(prettyPrint).reduceRight(_ :#: _)) :#:
+            "}" :+: text(arg)
+        case _ => text(t.toString) :+: text(arg)
     }
 
     private def prettyPrintFp(fp: ForPost): Doc = fp match {

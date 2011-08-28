@@ -3,6 +3,13 @@ package ee.cyber.simplicitas.oberonexample
 import collection.mutable.ArrayBuffer
 import ast._
 
+// Helper for storing arrays with size.
+case class OCArray(base: OType, size: gen.Expr) extends OType {
+    // This will not be called.
+    def assignableFrom(other: OType): Boolean = throw new Exception()
+}
+
+
 object Codegen {
     def generate(module: Module): gen.Module = {
         generateModule(module)
@@ -31,18 +38,38 @@ object Codegen {
                 procedures)
     }
 
+    private def convertField(f: FieldList) =
+        f.ids.ids.map(
+            (id: Id) => OField(id.text, convertType(f.idType)))
+
+    private def convertType(tv: TypeValue): OType = tv match {
+        case Id("INTEGER") =>
+            ORef("int")
+        case Id("BOOLEAN") =>
+            ORef("bool")
+        case Id(other) =>
+            ORef(other)
+        case RecordType(fields) =>
+            ORecord(fields.flatMap(convertField))
+        case ArrayType(size, base) =>
+            OCArray(convertType(base), generateExpr(size))
+    }
+
     private def generateDecl(decl: Declarations): Seq[gen.Stmt] = {
         val body = new ArrayBuffer[gen.Stmt]
 
+        for (tDecl <- decl.types) {
+            body += gen.Typedef(tDecl.name.text, convertType(tDecl.tValue))
+        }
+
         for (varDecl <- decl.vars; id <- varDecl.vars.ids) {
-            // TODO: convert to C type.
-            // TODO: correct type.
-            body += gen.VarDecl(id.text, "TODO:TYPE")
+            body += gen.VarDecl(id.text, convertType(varDecl.varType))
         }
 
         for (constDecl <- decl.consts) {
             // TODO: convert to C type.
-            body += gen.ConstDecl(constDecl.name.text,
+            body += gen.ConstDecl(
+                constDecl.name.text,
                 "TODO",
                 generateExpr(constDecl.expr))
         }

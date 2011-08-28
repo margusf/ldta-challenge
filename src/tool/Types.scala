@@ -62,3 +62,9 @@ case class ORecord(fields: Seq[OField]) extends OType {
 }
 
 case class OField(name: String, fType: OType)
+
+// Reference to predefined type alias. For use in C code generation.
+case class ORef(ref: String) extends OType {
+    // Will not be called.
+    def assignableFrom(o: OType): Boolean = throw new Exception()
+}
