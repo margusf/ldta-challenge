@@ -16,7 +16,7 @@ case class VarDecl(name: String, vType: OType) extends Stmt
 case class ProcDecl(name: String,
                     args: List[Arg],
                     body: List[Stmt])
-case class Arg(name: String, argType: String)
+case class Arg(name: String, argType: OType)
 
 // Something that can occur as post-condition in for statement
 sealed trait ForPost

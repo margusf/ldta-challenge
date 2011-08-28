@@ -26,8 +26,8 @@ object Codegen {
             } else {
                 procedures =
                     gen.ProcDecl("main",
-                        List(gen.Arg("argc", "int"),
-                            gen.Arg("argv", "char **")),
+                        List(gen.Arg("argc", ORef("int")),
+                            gen.Arg("argv", ORef("char **"))),
                         List(stmt)) :: procedures
             }
         }
@@ -90,10 +90,8 @@ object Codegen {
 
         for (fp <- proc.params; p <- fp.ids.ids) {
             // TODO: deal with var parameters
-            // TODO: use actual type instead of type name.
 
-            // TODO: reinstate
-//            params += gen.Arg(p.text, fp.pType.text)
+            params += gen.Arg(p.text, convertType(fp.pType))
         }
         params.toList
     }
