@@ -26,7 +26,7 @@ object Codegen {
             } else {
                 procedures =
                     gen.ProcDecl("main",
-                        List(gen.Arg("int", "argc"),
+                        List(gen.Arg("argc", "argv"),
                             gen.Arg("argv", "char **")),
                         List(stmt)) :: procedures
             }
@@ -46,7 +46,7 @@ object Codegen {
         case Id("INTEGER") =>
             ORef("int")
         case Id("BOOLEAN") =>
-            ORef("bool")
+            ORef("int")
         case Id(other) =>
             ORef(other)
         case RecordType(fields) =>
