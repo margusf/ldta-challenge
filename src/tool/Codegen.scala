@@ -24,11 +24,11 @@ object Codegen {
                 throw new Exception(
                     "Procedure main exists and module body is not empty")
             } else {
-                procedures =
-                    gen.ProcDecl("main",
+                procedures :+=
+                        gen.ProcDecl("main",
                         List(gen.Arg("argc", ORef("int")),
                             gen.Arg("argv", ORef("char **"))),
-                        List(stmt)) :: procedures
+                        List(stmt))
             }
         }
 
@@ -67,10 +67,11 @@ object Codegen {
         }
 
         for (constDecl <- decl.consts) {
-            // TODO: convert to C type.
+            // Calculating the constant type is actually meaningless as
+            // both int and bool constants amount to "int" in C.
             body += gen.ConstDecl(
                 constDecl.name.text,
-                "TODO",
+                ORef("int"),
                 generateExpr(constDecl.expr))
         }
 

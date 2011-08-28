@@ -64,7 +64,9 @@ class Simplify(module: Module) {
             case CaseStatement(expr, clauses, elseClause) =>
                 // Artificial variable for case expression
                 val exprVar = newId
-                val exprDef = VarDef(IdentList(List(Id(exprVar))), Id("TODO!"))
+                val exprDef = VarDef(
+                    IdentList(List(Id(exprVar))),
+                    Id("INTEGER"))
 
                 val ifClauses = clauses.map(caseClause(exprVar))
                 val ifConds = ifClauses.map(_._1)

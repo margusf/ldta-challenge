@@ -165,7 +165,7 @@ class Typecheck {
             }
         }
 
-        expr match {
+        val retType = expr match {
             case Id(name) =>
                 env.get(name) match {
                     case Some((node, oType)) =>
@@ -211,6 +211,8 @@ class Typecheck {
             case _ =>
                 throw new IllegalArgumentException(expr.toString)
         }
+        expr.exprType = retType
+        retType
     }
 
     def checkType(expected: OType, received: OType, loc: SourceLocation) {

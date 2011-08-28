@@ -67,7 +67,7 @@ object PrettyPrintC {
                 indent(prettyPrint(body)) :#:
             text("}")
         case ConstDecl(name, cType, value) =>
-            cType :+: name :+: "=" :+: prettyPrint(value) :: semi
+            prettyPrint(name, cType) :+: "=" :+: prettyPrint(value) :: semi
         case VarDecl(name, vType) =>
             prettyPrint(name, vType) :: semi
         case Typedef(name, tType) =>
