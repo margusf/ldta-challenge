@@ -92,7 +92,7 @@ object PrettyPrintC {
             prettyPrint(arg, base) :: brackets(prettyPrint(size))
         case ORecord(fields) =>
             "struct" :+: "{" :#:
-                indent(fields.map(prettyPrint).reduceRight(_ :#: _)) :#:
+                indent(vcat(fields.map(prettyPrint).toList)) :#:
             "}" :+: arg
         case _ => text(t.toString) :+: arg
     }

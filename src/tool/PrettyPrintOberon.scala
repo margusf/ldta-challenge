@@ -110,15 +110,29 @@ object PrettyPrintOberon {
             "END"
     }
 
+    private def prettyPrint(field: FieldList): Doc =
+        withCommas(field.ids.ids.map((id: Id) => text(id.text))) :: ":" :+:
+                prettyPrint(field.idType)
+
+    private def prettyPrint(tv: TypeValue): Doc = tv match {
+        case Id(name) =>
+            text(name)
+        case RecordType(fields) =>
+            "RECORD" :#:
+                indent(punctuate(semi :: line, fields.map(prettyPrint))) :#:
+            text("END")
+        case ArrayType(size, base) =>
+            "ARRAY" :+: prettyPrint(size) :+: "OF" :+: prettyPrint(base)
+    }
+
     private def prettyPrint(decl: Declarations): Doc = {
         def doConst(c: ConstantDef) =
-            c.name :+: "=" :+: prettyPrint(c.expr)
+            c.name :+: "=" :+: prettyPrint(c.expr) :: semi
         def doType(t: TypeDef): Doc =
-            // TODO
-            t.name :+: "=" :+: text("TODO")
+            t.name :+: "=" :+: prettyPrint(t.tValue) :: semi
         def doVar(v: VarDef): Doc =
-            // TODO
-            withCommas(v.vars.ids.map(idToDoc)) :: ":" :+: "TODO"
+            withCommas(v.vars.ids.map(idToDoc)) :: ":" :+:
+                    prettyPrint(v.varType) :: semi
 
         val body =
             (if (decl.consts.isEmpty)
@@ -126,21 +140,20 @@ object PrettyPrintOberon {
             else
                 "CONST" :#:
                         indent(
-                            punctuate(semi :: line,
-                                decl.consts.map(doConst)))) :#:
+                            vcat(decl.consts.map(doConst)))) :#:
             (if (decl.types.isEmpty)
                 empty
             else
                 "TYPE" :#:
                     indent(
-                        punctuate(semi :: line, decl.types.map(doType)))) :#:
+                        vcat(decl.types.map(doType)))) :#:
             (if (decl.vars.isEmpty)
                 empty
             else
                 "VAR" :: line ::
                     indent(
-                        punctuate(semi :: line, decl.vars.map(doVar)))) :#:
-            punctuate(semi :: line, decl.procedures.map(prettyPrint))
+                        vcat(decl.vars.map(doVar)))) :#:
+            vcat(decl.procedures.map(prettyPrint))
 
         indent(body) :: line
     }
@@ -149,8 +162,7 @@ object PrettyPrintOberon {
         def print(fp: FormalParam): Doc = {
             (if (fp.pVar ne null) text("VAR") else empty) ::
                     withCommas(fp.ids.ids.map(idToDoc)) ::
-                    // TODO
-                    ":" :+: "TODO"
+                    ":" :+: prettyPrint(fp.pType)
         }
         def params: Doc =
             if ((proc.params ne null) && !proc.params.isEmpty)
@@ -165,7 +177,7 @@ object PrettyPrintOberon {
                     prettyPrint(proc.body)
         else
             empty) ::
-        "END" :+: proc.name2
+        "END" :+: proc.name2 :: semi
 
     }
 
