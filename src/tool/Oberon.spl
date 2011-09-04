@@ -134,22 +134,22 @@ WhileStatement:
 
 ForStatement:
     "FOR" variable=Id ":=" start=PlusExpr
-            direction=ForDirection end=PlusExpr "DO"
+            "TO" end=PlusExpr ("BY" step=PlusExpr)? "DO"
         body=StatementSequence
     "END";
-option ForDirection: To | DownTo;
-To: "TO";
-DownTo: "DOWNTO";
+//option ForDirection: To | DownTo;
+//To: "TO";
+//DownTo: "DOWNTO";
 
 CaseStatement:
     "CASE" expr=PlusExpr "OF"
-        clauses=CaseClause+
-        ("ELSE" elseClause=StatementSequence ";")?
+        clauses=CaseClause ("|" clauses=CaseClause)*
+        ("ELSE" elseClause=StatementSequence)?
     "END";
 
 CaseClause:
     items=CaseConstant ("," items=CaseConstant)* ":"
-    stmt=StatementSequence ";";
+    stmt=StatementSequence;
 
 CaseConstant: begin=NumberLit (".." end=NumberLit)?;
 

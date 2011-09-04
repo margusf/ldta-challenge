@@ -90,19 +90,20 @@ object PrettyPrintOberon {
                     "DO" :#:
                 prettyPrint(body) ::
             "END"
-        case ForStatement(variable, start, direction, end, body) =>
+        case ForStatement(variable, start, end, step, body) =>
             "FOR" :+: variable :+: ":=" :+:
-                    prettyPrint(start) :+:
-                    (direction match {
-                        case To() => "TO"
-                        case DownTo() => "DOWNTO"
-                    }) :+:
-                    prettyPrint(end) :+: "DO" :#:
+                    prettyPrint(start) :+: "TO" :+:
+                    prettyPrint(end) :+:
+                    (if (step ne null)
+                        "STEP" :+: prettyPrint(step)
+                    else
+                        empty) :+:
+                    "DO" :#:
                 prettyPrint(body) ::
             "END"
         case CaseStatement(expr, clauses, elseClause) =>
             "CASE" :+: prettyPrint(expr) :+: "OF" :#:
-            concat(clauses.map(doCaseClause)) ::
+            punctuate(text("|") :: space, clauses.map(doCaseClause)) ::
             (if (elseClause ne null)
                 "ELSE" :#: prettyPrint(elseClause)
             else

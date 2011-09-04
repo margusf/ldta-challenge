@@ -69,10 +69,12 @@ class Typecheck {
             case WhileStatement(cond, body) =>
                 checkBoolean(cond, env)
                 processStatements(body, env)
-            case ForStatement(varName, start, direction, end, body) =>
+            case ForStatement(varName, start, end, step, body) =>
                 checkInteger(varName, env)
                 checkInteger(start, env)
                 checkInteger(end, env)
+                if (step ne null)
+                    checkInteger(step, env)
                 processStatements(body, env)
             case CaseStatement(expr, clauses, elseClause) =>
                 checkInteger(expr, env)

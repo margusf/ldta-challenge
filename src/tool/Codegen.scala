@@ -131,17 +131,15 @@ object Codegen {
         }
         case WhileStatement(cond, body) =>
             gen.While(generateExpr(cond), generateStatements(body))
-        case ForStatement(Id(id), start, direction, end, body) =>
+        case ForStatement(Id(id), start, end, step, body) =>
             val pre = gen.Assign(gen.Id(id), generateExpr(start))
             val endExpr = generateExpr(end)
-            val incr = gen.NumberLit(1)
-            val (cond, post) = direction match {
-                case To() =>
-                    (gen.Binary("<=", gen.Id(id), endExpr), gen.Inc(id, incr))
-                case DownTo() =>
-                    (gen.Binary(">=", gen.Id(id), endExpr), gen.Dec(id, incr))
-            }
-
+            val cond = gen.Binary("<=", gen.Id(id), endExpr)
+            val post = gen.Inc(id,
+                if (step ne null)
+                    generateExpr(step)
+                else
+                    gen.NumberLit(1))
             gen.For(pre, cond, post, generateStatements(body))
         // Case statement is translated to series of if statements because
         // C case does not support ranges.

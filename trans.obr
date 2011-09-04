@@ -16,7 +16,7 @@ MODULE Simple;
 				foo := y
 			END;
 			WHILE 1 = 2 DO
-				FOR y := 10 DOWNTO 1 DO
+				FOR y := 10 TO 1 BY -10 DO
 					foo := y
 				END
 			END
@@ -26,7 +26,7 @@ MODULE Simple;
 		BEGIN
 			CASE 1 + 2 OF
 				3:
-					Write(3);
+					Write(3)
 			END
 		END InnerCase;
 
@@ -48,16 +48,16 @@ BEGIN
 	Test(10, 1 = 1);
 	CASE 10 OF
 		1:
-			Write(1);
-		2, 3:
-			Write(23);
-		4..5:
-			Write(45);
-		5..6, 7..8, 9:
+			Write(1)
+		| 2, 3:
+			Write(23)
+		| 4..5:
+			Write(45)
+		| 5..6, 7..8, 9:
 			Write(56);
 			Write(78);
-			Write(9);
+			Write(9)
 		ELSE
-			Write(111);
+			Write(111)
 	END
 END Simple.
