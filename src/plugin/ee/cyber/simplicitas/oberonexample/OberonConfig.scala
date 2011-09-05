@@ -3,6 +3,8 @@ package ee.cyber.simplicitas.oberonexample
 import ee.cyber.simplicitas.imp._
 import ee.cyber.simplicitas.{GenericToken, CommonNode}
 
+import ee.cyber.simplicitas.oberonexample.ast._
+
 import org.eclipse.swt.graphics.Image
 import org.eclipse.imp.language.LanguageRegistry
 
