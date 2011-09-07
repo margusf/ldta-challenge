@@ -153,9 +153,11 @@ CaseClause:
 
 CaseConstant: begin=NumberLit (".." end=NumberLit)?;
 
-terminal Id
-    {var ref: CommonNode = null}
-    : ('a'..'z'|'A'..'Z') ('a'..'z'|'A'..'Z'|'0'..'9')*;
+terminal Id {
+    var ref: CommonNode = null
+    var byRef: Boolean = false
+    def isByRef = byRef || ((ref ne null) && (ref.asInstanceOf[Id].byRef))
+    } : ('a'..'z'|'A'..'Z') ('a'..'z'|'A'..'Z'|'0'..'9')*;
 fragment MlComment: '/*' (~'*' | '*' ~'/')* '*/';
 fragment SlComment: '//' ~('\n'|'\r')*;
 hidden terminal WS: (' '|'\t'|'\r'|'\n'|SlComment|MlComment)+;
