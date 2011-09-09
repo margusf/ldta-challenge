@@ -118,7 +118,11 @@ object PrettyPrintC {
         expr match {
             case FunCall(name, args) =>
                 name :: parens(withCommas(args.map(prettyPrint)))
-            case Id(name) => text(name)
+            case Id(name, isRef) =>
+                if (isRef)
+                    parens("*" :: text(name))
+                else
+                    text(name)
             case NumberLit(value) => text(value.toString)
             case Unary(op, arg) =>
                 val argPP = arg match {

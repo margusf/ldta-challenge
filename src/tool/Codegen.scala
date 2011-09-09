@@ -90,9 +90,12 @@ object Codegen {
         val params = new ArrayBuffer[gen.Arg]
 
         for (fp <- proc.params; p <- fp.ids.ids) {
-            // TODO: deal with var parameters
-
-            params += gen.Arg(p.text, convertType(fp.pType))
+            val varName =
+                if (p.isByRef)
+                    "*" + p.text
+                else
+                    p.text
+            params += gen.Arg(varName, convertType(fp.pType))
         }
         params.toList
     }
@@ -131,11 +134,13 @@ object Codegen {
         }
         case WhileStatement(cond, body) =>
             gen.While(generateExpr(cond), generateStatements(body))
-        case ForStatement(Id(id), start, end, step, body) =>
-            val pre = gen.Assign(gen.Id(id), generateExpr(start))
+        case ForStatement(id @ Id(varName), start, end, step, body) =>
+            val pre = gen.Assign(
+                gen.Id(varName, id.isByRef),
+                generateExpr(start))
             val endExpr = generateExpr(end)
-            val cond = gen.Binary("<=", gen.Id(id), endExpr)
-            val post = gen.Inc(id,
+            val cond = gen.Binary("<=", gen.Id(varName, id.isByRef), endExpr)
+            val post = gen.Inc(varName,
                 if (step ne null)
                     generateExpr(step)
                 else
@@ -149,8 +154,8 @@ object Codegen {
     }
 
     def generateExpr(expr: Expression): gen.Expr = expr match {
-        case Id(name) =>
-            gen.Id(name)
+        case id @ Id(name) =>
+            gen.Id(name, id.isByRef)
         case Binary(op, left, right) =>
             gen.Binary(cBinOps(op), generateExpr(left), generateExpr(right))
         case Unary(op, arg) =>

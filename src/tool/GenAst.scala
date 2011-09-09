@@ -34,7 +34,7 @@ case class Dec(id: String, value: Expr) extends Stmt with ForPost
 
 abstract class Expr extends Stmt // all expressions can be used as statements
 case class FunCall(name: String, args: List[Expr]) extends Expr
-case class Id(name: String) extends Expr
+case class Id(name: String, isRef: Boolean) extends Expr
 case class NumberLit(value: Int) extends Expr
 case class Binary(op: String, left: Expr, right: Expr) extends Expr
 case class Unary(op: String, arg: Expr) extends Expr

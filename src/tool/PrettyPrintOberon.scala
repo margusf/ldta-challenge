@@ -161,7 +161,7 @@ object PrettyPrintOberon {
 
     private def prettyPrint(proc: ProcedureDecl): Doc = {
         def print(fp: FormalParam): Doc = {
-            (if (fp.pVar ne null) text("VAR") else empty) ::
+            (if (fp.pVar ne null) text("VAR") :: space else empty) ::
                     withCommas(fp.ids.ids.map(idToDoc)) ::
                     ":" :+: prettyPrint(fp.pType)
         }

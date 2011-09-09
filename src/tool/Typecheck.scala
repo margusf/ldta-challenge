@@ -130,11 +130,15 @@ class Typecheck {
         val paramTypes = new ArrayBuffer[OType]
 
         for (fp <- pd.params;
-             if fp ne null;
-             id <- fp.ids.ids) {
+                if fp ne null;
+                id <- fp.ids.ids) {
+            id.byRef = fp.pVar ne null
+            if (fp.pVar ne null)
+                println("by ref variable: " + id.text)
             val paramType = typeValue(fp.pType, bodyEnv)
             bodyEnv = bodyEnv.addPrimitive(id, paramType)
             paramTypes += paramType
+            // Record whether this is by-ref parameter.
         }
         bodyEnv = processDeclarations(pd.decl, bodyEnv)
 
