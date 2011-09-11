@@ -18,8 +18,10 @@ class Simplify(module: Module) {
     var currentId = 0
 
     def apply(): Module = {
-        doProcedures(module.decl.procedures)
-        val ctx = new Ctx
+        val ctx = new Ctx(getIds(module.decl))
+        // As all the top-level variables are visible to procedures,
+        // there is no need to actually process the ctx.freeVars
+        doProcedures(ctx, module.decl.procedures)
         doStatementSequence(ctx, module.statements)
         Module(module.name1,
             Declarations(
@@ -31,7 +33,17 @@ class Simplify(module: Module) {
             module.name2)
     }
 
-    private class Ctx {
+    private def getIds(decl: Declarations) = {
+        def doVarDef(vd: VarDef) =
+            for (id <- vd.vars.ids) yield id.text
+
+        val consts = decl.consts.map(_.name.text)
+        val vars = decl.vars.flatMap(doVarDef)
+
+        (consts ++ vars).toSet
+    }
+
+    private class Ctx(val globals: Set[String]) {
         /** Variables introduced by transformations within statements. */
         val newVars = ArrayBuffer[VarDef]()
         /** Free variables that are used by this procedure. */
@@ -43,14 +55,6 @@ class Simplify(module: Module) {
             stmt.stmt = stmt.stmt.foldRight[List[Statement]](Nil)(doStmt(ctx))
         }
     }
-
-
-//    private def doBody(vars: List[VarDef], body: StatementSequence):
-//            (List[VarDef], List[Statement]) =
-//        if ((body eq null) || (body.stmt eq null))
-//            (vars, Nil)
-//        else
-//            body.stmt.foldRight[(List[VarDef], List[Statement])]((vars, Nil))(doStmt)
 
     private def caseClause(id: String)(clause: CaseClause) = {
         def doConst(c: CaseConstant) =
@@ -74,8 +78,8 @@ class Simplify(module: Module) {
         // Process all the child elements -- statements, expressions.
         for (child <- stmt.children) {
             child match {
-                case e: Expression =>
-                    // TODO: track free variables.
+                case id: Id if (id.exprType.isInstanceOf[ONonData]) =>
+                    ctx.freeVars += id.text
                 case s: StatementSequence =>
                     doStatementSequence(ctx, s)
                 case _ =>
@@ -108,12 +112,16 @@ class Simplify(module: Module) {
         }
     }
 
-    private def doProcedures(procList: List[ProcedureDecl]) {
+    private def doProcedures(ctx: Ctx, procList: List[ProcedureDecl]) {
         for (proc <- procList) {
-            doProcedures(proc.decl.procedures)
-            // TODO: somehow merge the stuff?
-            val ctx = new Ctx
+            val subCtx = new Ctx(ctx.globals)
+            doProcedures(subCtx, proc.decl.procedures)
+            val bodyCtx = new Ctx(ctx.globals)
             doStatementSequence(ctx, proc.body)
+
+            val myVars = getIds(proc.decl)
+            val deltaVars = (bodyCtx.freeVars ++ subCtx.freeVars -- myVars).toList
+            println("deltaVars(" + proc.name + "): " + deltaVars)
 
             topLevel += ProcedureDecl(
                     proc.name,
@@ -121,7 +129,7 @@ class Simplify(module: Module) {
                     Declarations(
                             proc.decl.consts,
                             proc.decl.types,
-                            ctx.newVars.toList,
+                            proc.decl.vars ++ ctx.newVars,
                             Nil),
                     proc.body,
                     proc.name2)

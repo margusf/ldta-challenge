@@ -15,16 +15,18 @@ MODULE Simple;
 			FOR y := 1 TO 10 DO
 				foo := y
 			END;
-			WHILE 1 = 2 DO
+			WHILE z = 2 DO
 				FOR y := 10 TO 1 BY -10 DO
-					foo := y
+					foo := yy
 				END
 			END
 		END Inner;
 
 		PROCEDURE InnerCase();
+			VAR
+				something: INTEGER;
 		BEGIN
-			CASE 1 + 2 OF
+			CASE 1 + z OF
 				3:
 					Write(3)
 			END

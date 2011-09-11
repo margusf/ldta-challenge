@@ -30,11 +30,14 @@ case class OInt extends OType {
     override def toString = "INTEGER"
 }
 
-case class OFunc(args: Seq[OType], ret: OType) extends OType {
+// Common base class for all non-data types (functions, procedures).
+trait ONonData
+
+case class OFunc(args: Seq[OType], ret: OType) extends OType with ONonData {
     def assignableFrom(other: OType) = true
 }
 
-case class OProc(args: Seq[OType]) extends OType {
+case class OProc(args: Seq[OType]) extends OType with ONonData {
     def assignableFrom(other: OType) = true
 }
 
