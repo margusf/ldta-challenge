@@ -121,6 +121,7 @@ class Simplify(module: Module) {
 
             val myVars = getIds(proc.decl)
             val deltaVars = (bodyCtx.freeVars ++ subCtx.freeVars -- myVars).toList
+            println("freevars(" + proc.name + "):" + (bodyCtx.freeVars ++ subCtx.freeVars))
             println("deltaVars(" + proc.name + "): " + deltaVars)
 
             topLevel += ProcedureDecl(
