@@ -46,18 +46,20 @@ MODULE Simple;
     END Test;
 BEGIN
 	Test(10, 1 = 1);
-	CASE 10 OF
-		1:
-			Write(1)
-		| 2, 3:
-			Write(23)
-		| 4..5:
-			Write(45)
-		| 5..6, 7..8, 9:
-			Write(56);
-			Write(78);
-			Write(9)
-		ELSE
-			Write(111)
+	IF 10 = 10 THEN
+		CASE 10 OF
+			1:
+				Write(1)
+			| 2, 3:
+				Write(23)
+			| 4..5:
+				Write(45)
+			| 5..6, 7..8, 9:
+				Write(56);
+				Write(78);
+				Write(9)
+			ELSE
+				Write(111)
+		END
 	END
 END Simple.

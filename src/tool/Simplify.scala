@@ -19,24 +19,38 @@ class Simplify(module: Module) {
 
     def apply(): Module = {
         doProcedures(module.decl.procedures)
-        val (newVars, newBody) =
-            doBody(module.decl.vars, module.statements)
+        val ctx = new Ctx
+        doStatementSequence(ctx, module.statements)
         Module(module.name1,
             Declarations(
                 module.decl.consts,
                 module.decl.types,
-                newVars,
+                module.decl.vars ++ ctx.newVars,
                 topLevel.toList),
-            StatementSequence(newBody),
+            module.statements,
             module.name2)
     }
 
-    private def doBody(vars: List[VarDef], body: StatementSequence):
-            (List[VarDef], List[Statement]) =
-        if ((body eq null) || (body.stmt eq null))
-            (vars, Nil)
-        else
-            body.stmt.foldRight[(List[VarDef], List[Statement])]((vars, Nil))(doStmt)
+    private class Ctx {
+        /** Variables introduced by transformations within statements. */
+        val newVars = ArrayBuffer[VarDef]()
+        /** Free variables that are used by this procedure. */
+        val freeVars = collection.mutable.Set[String]()
+    }
+
+    private def doStatementSequence(ctx: Ctx, stmt: StatementSequence) {
+        if ((stmt ne null) && (stmt.stmt ne null)) {
+            stmt.stmt = stmt.stmt.foldRight[List[Statement]](Nil)(doStmt(ctx))
+        }
+    }
+
+
+//    private def doBody(vars: List[VarDef], body: StatementSequence):
+//            (List[VarDef], List[Statement]) =
+//        if ((body eq null) || (body.stmt eq null))
+//            (vars, Nil)
+//        else
+//            body.stmt.foldRight[(List[VarDef], List[Statement])]((vars, Nil))(doStmt)
 
     private def caseClause(id: String)(clause: CaseClause) = {
         def doConst(c: CaseConstant) =
@@ -55,11 +69,20 @@ class Simplify(module: Module) {
         (expr, clause.stmt)
     }
 
-    private def doStmt(stmt: Statement,
-                      old: (List[VarDef], List[Statement])):
-            (List[VarDef], List[Statement]) = {
-        val oldVars = old._1
-        val oldBody = old._2
+    private def doStmt(ctx: Ctx)(stmt: Statement, old: List[Statement]):
+            List[Statement] = {
+        // Process all the child elements -- statements, expressions.
+        for (child <- stmt.children) {
+            child match {
+                case e: Expression =>
+                    // TODO: track free variables.
+                case s: StatementSequence =>
+                    doStatementSequence(ctx, s)
+                case _ =>
+                    // Do nothing
+            }
+        }
+
         stmt match {
             case CaseStatement(expr, clauses, elseClause) =>
                 // Artificial variable for case expression
@@ -76,18 +99,21 @@ class Simplify(module: Module) {
                     ifConds,
                     ifStatements,
                     elseClause)
-                (exprDef :: oldVars,
-                        Assignment(Id(exprVar), expr) :: ifStmt :: oldBody)
+                ctx.newVars += exprDef
+                Assignment(Id(exprVar), expr) :: ifStmt :: old
             case _ =>
-                (oldVars, stmt :: oldBody)
+                // No direct transformation needed. The children were already
+                // transformed.
+                stmt :: old
         }
     }
 
     private def doProcedures(procList: List[ProcedureDecl]) {
         for (proc <- procList) {
             doProcedures(proc.decl.procedures)
-            val (newVars, newBody) =
-                    doBody(proc.decl.vars, proc.body)
+            // TODO: somehow merge the stuff?
+            val ctx = new Ctx
+            doStatementSequence(ctx, proc.body)
 
             topLevel += ProcedureDecl(
                     proc.name,
@@ -95,9 +121,9 @@ class Simplify(module: Module) {
                     Declarations(
                             proc.decl.consts,
                             proc.decl.types,
-                            newVars,
+                            ctx.newVars.toList,
                             Nil),
-                    StatementSequence(newBody),
+                    proc.body,
                     proc.name2)
         }
     }

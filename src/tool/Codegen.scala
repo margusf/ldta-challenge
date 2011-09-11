@@ -112,8 +112,6 @@ object Codegen {
             // as LHS.
             gen.Assign(generateExpr(lhs), generateExpr(right))
         case ProcedureCall(Id(name), args) =>
-            // TODO: add additional arguments corresponding to
-            // variables defined in outer scope.
             gen.FunCall(name,
                 if (args eq null)
                     List.empty
