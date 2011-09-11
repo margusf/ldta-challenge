@@ -105,7 +105,7 @@ object PrettyPrintC {
     }
 
     private def prettyPrint(expr: Expr): Doc = {
-        // TODO: copypaste of Oberon pretty-printer
+        // fixme: copypaste of Oberon pretty-printer
         def wrapIfNeeded(expr: Expr, parentOp: String) = expr match {
             case Unary(op, _) if (precedence(op) < precedence(parentOp)) =>
                 parens(prettyPrint(expr))
