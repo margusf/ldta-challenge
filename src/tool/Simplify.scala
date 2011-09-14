@@ -43,6 +43,16 @@ class Simplify(module: Module) {
         (consts ++ vars).toSet
     }
 
+    private def getIds(params: List[FormalParam]) = {
+        def doFp(fp: FormalParam) =
+            for (id <- fp.ids.ids) yield id.text
+
+        if (params eq null)
+            Set.empty
+        else
+            params.flatMap(doFp).toSet
+    }
+
     private class Ctx(val globals: Set[String]) {
         /** Variables introduced by transformations within statements. */
         val newVars = ArrayBuffer[VarDef]()
@@ -119,8 +129,9 @@ class Simplify(module: Module) {
             val bodyCtx = new Ctx(ctx.globals)
             doStatementSequence(bodyCtx, proc.body)
 
-            val myVars = getIds(proc.decl)
+            val myVars = getIds(proc.decl) ++ getIds(proc.params)
             val deltaVars = (bodyCtx.freeVars ++ subCtx.freeVars -- myVars).toList
+            println("myvars(" + proc.name + "):" + myVars)
             println("freevars(" + proc.name + "):" + (bodyCtx.freeVars ++ subCtx.freeVars))
             println("deltaVars(" + proc.name + "): " + deltaVars)
 
