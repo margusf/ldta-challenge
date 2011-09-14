@@ -19,7 +19,8 @@ MODULE Simple;
 				FOR y := 10 TO 1 BY -10 DO
 					foo := yy
 				END
-			END
+			END;
+			Write(z)
 		END Inner;
 
 		PROCEDURE InnerCase();

@@ -78,7 +78,7 @@ class Simplify(module: Module) {
         // Process all the child elements -- statements, expressions.
         for (child <- stmt.children) {
             child match {
-                case id: Id if (id.exprType.isInstanceOf[ONonData]) =>
+                case id: Id if (!id.exprType.isInstanceOf[ONonData]) =>
                     ctx.freeVars += id.text
                 case s: StatementSequence =>
                     doStatementSequence(ctx, s)
@@ -117,7 +117,7 @@ class Simplify(module: Module) {
             val subCtx = new Ctx(ctx.globals)
             doProcedures(subCtx, proc.decl.procedures)
             val bodyCtx = new Ctx(ctx.globals)
-            doStatementSequence(ctx, proc.body)
+            doStatementSequence(bodyCtx, proc.body)
 
             val myVars = getIds(proc.decl)
             val deltaVars = (bodyCtx.freeVars ++ subCtx.freeVars -- myVars).toList
