@@ -3,7 +3,7 @@ MODULE Simple;
 
 	VAR globInt: INTEGER;
 
-    PROCEDURE Test(x: INTEGER; o: BOOLEAN);
+    PROCEDURE Test(x: INTEGER; VAR o: BOOLEAN);
    		CONST
 			yy = 30;
    		VAR
