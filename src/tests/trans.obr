@@ -3,7 +3,7 @@ MODULE Simple;
 
 	VAR globInt: INTEGER;
 
-    PROCEDURE Test(x: INTEGER; y: BOOLEAN);
+    PROCEDURE Test(x: INTEGER; o: BOOLEAN);
    		CONST
 			yy = 30;
    		VAR
@@ -20,7 +20,8 @@ MODULE Simple;
 					foo := yy
 				END
 			END;
-			Write(z)
+			Write(z);
+			Write(o)
 		END Inner;
 
 		PROCEDURE InnerCase();
@@ -36,14 +37,15 @@ MODULE Simple;
     BEGIN
         z := x + 20 * x + 4 * (4 + (-3));
 		Inner(x, x);
-		IF y THEN
+		InnerCase;
+		IF o THEN
 			z := 10
 		ELSIF z = 0 THEN
 			z := 11
 		ELSE
 			z := 12
 		END;
-		IF y THEN
+		IF o THEN
 			z := 10
 		END
     END Test;

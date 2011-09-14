@@ -1,5 +1,7 @@
 package ee.cyber.simplicitas.oberonexample
 
+import ee.cyber.simplicitas.LiteralNode
+
 import collection.mutable.ArrayBuffer
 import ast._
 
@@ -14,11 +16,17 @@ object Simplify {
 }
 
 class Simplify(module: Module) {
+    // List of top-level procedures (will be filled when procedure
+    // declarations are flattened)
     val topLevel = ArrayBuffer[ProcedureDecl]()
+    // For generating synthetic variable names.
     var currentId = 0
+    // Mapping from procedure names to list of additional parameters
+    // to the procedure
+    val extraParams = collection.mutable.Map[Id, List[Id]]()
 
     def apply(): Module = {
-        val ctx = new Ctx(getIds(module.decl))
+        val ctx = new Ctx(getIds(module.decl), null)
         // As all the top-level variables are visible to procedures,
         // there is no need to actually process the ctx.freeVars
         doProcedures(ctx, module.decl.procedures)
@@ -34,30 +42,29 @@ class Simplify(module: Module) {
     }
 
     private def getIds(decl: Declarations) = {
-        def doVarDef(vd: VarDef) =
-            for (id <- vd.vars.ids) yield id.text
-
-        val consts = decl.consts.map(_.name.text)
-        val vars = decl.vars.flatMap(doVarDef)
+        val consts = decl.consts.map(_.name)
+        val vars = decl.vars.flatMap(_.vars.ids)
 
         (consts ++ vars).toSet
     }
 
-    private def getIds(params: List[FormalParam]) = {
-        def doFp(fp: FormalParam) =
-            for (id <- fp.ids.ids) yield id.text
-
+    private def getIds(params: List[FormalParam]) =
         if (params eq null)
             Set.empty
         else
-            params.flatMap(doFp).toSet
-    }
+            params.flatMap(_.ids.ids).toSet
 
-    private class Ctx(val globals: Set[String]) {
+    private class Ctx(val globals: Set[Id], val parent: String) {
         /** Variables introduced by transformations within statements. */
         val newVars = ArrayBuffer[VarDef]()
         /** Free variables that are used by this procedure. */
-        val freeVars = collection.mutable.Set[String]()
+        val freeVars = collection.mutable.Set[Id]()
+
+        def getFullName(lastPart: String) =
+            if (parent eq null)
+                lastPart
+            else
+                parent + "_" + lastPart
     }
 
     private def doStatementSequence(ctx: Ctx, stmt: StatementSequence) {
@@ -89,7 +96,7 @@ class Simplify(module: Module) {
         for (child <- stmt.children) {
             child match {
                 case id: Id if (!id.exprType.isInstanceOf[ONonData]) =>
-                    ctx.freeVars += id.text
+                    ctx.freeVars += id
                 case s: StatementSequence =>
                     doStatementSequence(ctx, s)
                 case _ =>
@@ -122,11 +129,39 @@ class Simplify(module: Module) {
         }
     }
 
+    def getType(id: Id) = {
+        id.ref.parent match {
+            case ConstantDef(_, _, expr) =>
+                expr.exprType match {
+                    case OInt() => Id("INTEGER")
+                    case OBool() => Id("BOOLEAN")
+                    case _ =>
+                        println("PARENT: " + id.ref.parent)
+                        println("TYPE: " + expr.exprType)
+                        throw new Exception("Invalid type: " +
+                            expr.exprType)
+                }
+            case idList @ IdentList(_) =>
+                idList.parent match {
+                    case VarDef(_, vt) => vt
+                    case FormalParam(_, _, pt) => pt
+                    case _ => throw new Exception("Invalid parent: " +
+                            idList.parent)
+                }
+            case _ =>
+                throw new Exception("Invalid parent: " + id.ref.parent)
+        }
+    }
+
     private def doProcedures(ctx: Ctx, procList: List[ProcedureDecl]) {
         for (proc <- procList) {
-            val subCtx = new Ctx(ctx.globals)
+            // For flattening, change the name, but leave the Id object
+            // unchanged.
+            proc.name.text = ctx.getFullName(proc.name.text)
+
+            val subCtx = new Ctx(ctx.globals, proc.name.text)
             doProcedures(subCtx, proc.decl.procedures)
-            val bodyCtx = new Ctx(ctx.globals)
+            val bodyCtx = new Ctx(ctx.globals, proc.name.text)
             doStatementSequence(bodyCtx, proc.body)
 
             val myVars = getIds(proc.decl) ++ getIds(proc.params)
@@ -135,9 +170,20 @@ class Simplify(module: Module) {
             println("freevars(" + proc.name + "):" + (bodyCtx.freeVars ++ subCtx.freeVars))
             println("deltaVars(" + proc.name + "): " + deltaVars)
 
+            val newParams = deltaVars.map((id: Id) =>
+                FormalParam(
+                    (if (id.isByRef)
+                        LiteralNode("VAR")
+                    else
+                        null),
+                    IdentList(List(id)), // xxx: ideally we should make copy and update refs
+                    getType(id)))
+
+            extraParams(proc.name) = deltaVars
+
             topLevel += ProcedureDecl(
                     proc.name,
-                    proc.params,
+                    proc.params ++ newParams,
                     Declarations(
                             proc.decl.consts,
                             proc.decl.types,
