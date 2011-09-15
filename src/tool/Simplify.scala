@@ -1,9 +1,8 @@
 package ee.cyber.simplicitas.oberonexample
 
-import ee.cyber.simplicitas.LiteralNode
-
 import collection.mutable.ArrayBuffer
 import ast._
+import ee.cyber.simplicitas.{CommonNode, LiteralNode}
 
 // Simplifies the Oberon program
 // * Brings inner procedures to top level
@@ -30,7 +29,9 @@ class Simplify(module: Module) {
         // As all the top-level variables are visible to procedures,
         // there is no need to actually process the ctx.freeVars
         doProcedures(ctx, module.decl.procedures)
-        doStatementSequence(ctx, module.statements)
+        module.statements.walkTree(processChild(ctx))
+
+        module.walkTree(fixProcedureCall)
         Module(module.name1,
             Declarations(
                 module.decl.consts,
@@ -54,11 +55,26 @@ class Simplify(module: Module) {
         else
             params.flatMap(_.ids.ids).toSet
 
+    private def fixProcedureCall(node: CommonNode) {
+        node match {
+            case call @ ProcedureCall(name, args) =>
+                val key = name.ref.asInstanceOf[Id]
+                if (extraParams.contains(key)) {
+                    if (args eq null) {
+                        call.args = Nil
+                    }
+                    call.args ++= extraParams(key)
+                }
+            case _ =>
+                ()
+        }
+    }
+
     private class Ctx(val globals: Set[Id], val parent: String) {
         /** Variables introduced by transformations within statements. */
         val newVars = ArrayBuffer[VarDef]()
         /** Free variables that are used by this procedure. */
-        val freeVars = collection.mutable.Set[Id]()
+        var freeVars = collection.mutable.Set[Id]()
 
         def getFullName(lastPart: String) =
             if (parent eq null)
@@ -73,14 +89,14 @@ class Simplify(module: Module) {
         }
     }
 
-    private def caseClause(id: String)(clause: CaseClause) = {
+    private def caseClause(id: Id)(clause: CaseClause) = {
         def doConst(c: CaseConstant) =
             if (c.end ne null)
                 Binary(BinaryOp.And,
-                    Binary(BinaryOp.GreaterEqual, Id(id), c.begin),
-                    Binary(BinaryOp.LessEqual, Id(id), c.end))
+                    Binary(BinaryOp.GreaterEqual, newId(id), c.begin),
+                    Binary(BinaryOp.LessEqual, newId(id), c.end))
             else
-                Binary(BinaryOp.Equals, Id(id), c.begin)
+                Binary(BinaryOp.Equals, newId(id), c.begin)
 
         // List of comparison operators
         val exprList = clause.items.map(doConst)
@@ -92,24 +108,15 @@ class Simplify(module: Module) {
 
     private def doStmt(ctx: Ctx)(stmt: Statement, old: List[Statement]):
             List[Statement] = {
-        // Process all the child elements -- statements, expressions.
-        for (child <- stmt.children) {
-            child match {
-                case id: Id if (!id.exprType.isInstanceOf[ONonData]) =>
-                    ctx.freeVars += id
-                case s: StatementSequence =>
-                    doStatementSequence(ctx, s)
-                case _ =>
-                    // Do nothing
-            }
-        }
-
         stmt match {
             case CaseStatement(expr, clauses, elseClause) =>
                 // Artificial variable for case expression
-                val exprVar = newId
+                val exprVar = Id(newId)
+                exprVar.exprType = Types.int
+                exprVar.parent = expr.parent
+
                 val exprDef = VarDef(
-                    IdentList(List(Id(exprVar))),
+                    IdentList(List(exprVar)),
                     Id("INTEGER"))
 
                 val ifClauses = clauses.map(caseClause(exprVar))
@@ -121,7 +128,7 @@ class Simplify(module: Module) {
                     ifStatements,
                     elseClause)
                 ctx.newVars += exprDef
-                Assignment(Id(exprVar), expr) :: ifStmt :: old
+                Assignment(newId(exprVar), expr) :: ifStmt :: old
             case _ =>
                 // No direct transformation needed. The children were already
                 // transformed.
@@ -130,7 +137,9 @@ class Simplify(module: Module) {
     }
 
     def getType(id: Id) = {
-        id.ref.parent match {
+        val parent = (if (id.ref eq null) id else id.ref).parent
+
+        parent match {
             case ConstantDef(_, _, expr) =>
                 expr.exprType match {
                     case OInt() => Id("INTEGER")
@@ -149,7 +158,22 @@ class Simplify(module: Module) {
                             idList.parent)
                 }
             case _ =>
-                throw new Exception("Invalid parent: " + id.ref.parent)
+                throw new Exception("Invalid parent for " + id.text +
+                        ": " + parent)
+        }
+    }
+
+    private def processChild(ctx: Ctx)(child: CommonNode) {
+        child match {
+            case id: Id if (!id.exprType.isInstanceOf[ONonData]) =>
+                println("Added id: " + id)
+                ctx.freeVars += id
+            case id: Id =>
+                println("Discarded id " + id + " with type " + id.exprType)
+            case s: StatementSequence =>
+                doStatementSequence(ctx, s)
+            case _ =>
+                // Do nothing
         }
     }
 
@@ -162,15 +186,20 @@ class Simplify(module: Module) {
             val subCtx = new Ctx(ctx.globals, proc.name.text)
             doProcedures(subCtx, proc.decl.procedures)
             val bodyCtx = new Ctx(ctx.globals, proc.name.text)
-            doStatementSequence(bodyCtx, proc.body)
+            proc.body.walkTree(processChild(bodyCtx))
 
-            val myVars = getIds(proc.decl) ++ getIds(proc.params)
-            val deltaVars = (bodyCtx.freeVars ++ subCtx.freeVars -- myVars).toList
+            val myVars = getIds(proc.decl) ++ getIds(proc.params) ++
+                    bodyCtx.newVars.flatMap(_.vars.ids)
+            val deltaVars = bodyCtx.freeVars ++ subCtx.freeVars -- myVars
+            val deltaVarList = deltaVars.toList
+
+            ctx.freeVars ++= deltaVars
+
+            println("newVars: " + bodyCtx.newVars)
             println("myvars(" + proc.name + "):" + myVars)
-            println("freevars(" + proc.name + "):" + (bodyCtx.freeVars ++ subCtx.freeVars))
-            println("deltaVars(" + proc.name + "): " + deltaVars)
+            println("deltaVars(" + proc.name + "): " + deltaVarList)
 
-            val newParams = deltaVars.map((id: Id) =>
+            val newParams = deltaVarList.map((id: Id) =>
                 FormalParam(
                     (if (id.isByRef)
                         LiteralNode("VAR")
@@ -179,15 +208,16 @@ class Simplify(module: Module) {
                     IdentList(List(id)), // xxx: ideally we should make copy and update refs
                     getType(id)))
 
-            extraParams(proc.name) = deltaVars
+            extraParams(proc.name) = deltaVarList
 
             topLevel += ProcedureDecl(
                     proc.name,
-                    proc.params ++ newParams,
+                    (if (proc.params eq null) Nil else proc.params) ++
+                            newParams,
                     Declarations(
                             proc.decl.consts,
                             proc.decl.types,
-                            proc.decl.vars ++ ctx.newVars,
+                            proc.decl.vars ++ bodyCtx.newVars,
                             Nil),
                     proc.body,
                     proc.name2)
@@ -197,5 +227,13 @@ class Simplify(module: Module) {
     private def newId = {
         currentId += 1
         "gen_" + currentId
+    }
+
+    /** Makes new Id that references the old Id. */
+    private def newId(old: Id) = {
+        val ret = Id(old.text)
+        ret.ref = old.ref
+        ret.byRef = old.byRef
+        ret
     }
 }
