@@ -29,7 +29,9 @@ class Simplify(module: Module) {
         // As all the top-level variables are visible to procedures,
         // there is no need to actually process the ctx.freeVars
         doProcedures(ctx, module.decl.procedures)
-        module.statements.walkTree(processChild(ctx))
+        if (module.statements ne null) {
+            module.statements.walkTree(processChild(ctx))
+        }
 
         module.walkTree(fixProcedureCall)
         Module(module.name1,
