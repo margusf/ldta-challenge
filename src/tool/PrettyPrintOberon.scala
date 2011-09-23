@@ -8,6 +8,22 @@ import Doc._
 import BinaryOp.precedence
 
 object PrettyPrintOberon {
+    // TODO, XXX: these should be punctuate and withCommas from the
+    // official PPrint class, but for some reason these will
+    // cause infinite loop.
+    def punctuate(sep: Doc , items: List[Doc]): Doc = {
+        def loop(lst: List[Doc]): Doc = lst match {
+            case Nil => empty
+            case List(d) => d
+            case h :: t => h :: sep :: loop(t)
+        }
+
+        loop(items)
+    }
+
+    def withCommas(lst: List[Doc]): Doc =
+        punctuate(comma :: space, lst)
+
     def prettyPrint(module: Module, writer: Writer) {
         val doc = prettyPrint(module)
         println("doc:\n\n" + doc)
