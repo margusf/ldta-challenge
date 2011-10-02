@@ -41,8 +41,6 @@ object PrettyPrintOberon {
 
     def indent(doc: Doc) = Doc.indent(4, doc)
 
-//    implicit def strToDoc(str: String) = text(str)
-
     def prettyPrint(module: Module): Doc = {
         "MODULE" :+: module.name1 :: semi :#:
             prettyPrint(module.decl) ::
@@ -60,26 +58,9 @@ object PrettyPrintOberon {
         else
             empty
 
-//    private def withSemicolons(lst: List[Doc],
-//                               withLineBreak: Boolean = true): Document =
-//        withSeparator(lst,
-//            semicolon :: (if (withLineBreak) lineBreak else space))
-
     private def doElsif(elsif: (Expression, StatementSequence)): Doc =
         "ELSIF" :+: prettyPrint(elsif._1) :#:
             prettyPrint(elsif._2)
-
-    private def doCaseClause(clause: CaseClause): Doc = {
-        def doConst(c: CaseConstant): Doc =
-            c.begin.text ::
-                    (if(c.end ne null)
-                        ".." :: text(c.end.text)
-                    else
-                        empty)
-
-        withCommas(clause.items.map(doConst)) :: ":" :#:
-            prettyPrint(clause.stmt)
-    }
 
     private def prettyPrint(stmt: Statement): Doc = stmt match {
         case Assignment(left, right) =>
@@ -106,25 +87,6 @@ object PrettyPrintOberon {
                     "DO" :#:
                 prettyPrint(body) ::
             "END"
-        case ForStatement(variable, start, end, step, body) =>
-            "FOR" :+: variable :+: ":=" :+:
-                    prettyPrint(start) :+: "TO" :+:
-                    prettyPrint(end) :+:
-                    (if (step ne null)
-                        "STEP" :+: prettyPrint(step)
-                    else
-                        empty) :+:
-                    "DO" :#:
-                prettyPrint(body) ::
-            "END"
-        case CaseStatement(expr, clauses, elseClause) =>
-            "CASE" :+: prettyPrint(expr) :+: "OF" :#:
-            punctuate(text("|") :: space, clauses.map(doCaseClause)) ::
-            (if (elseClause ne null)
-                "ELSE" :#: prettyPrint(elseClause)
-            else
-                empty) ::
-            "END"
     }
 
     private def prettyPrint(field: FieldList): Doc =
@@ -134,12 +96,6 @@ object PrettyPrintOberon {
     private def prettyPrint(tv: TypeValue): Doc = tv match {
         case Id(name) =>
             text(name)
-        case RecordType(fields) =>
-            "RECORD" :#:
-                indent(punctuate(semi :: line, fields.map(prettyPrint))) :#:
-            text("END")
-        case ArrayType(size, base) =>
-            "ARRAY" :+: prettyPrint(size) :+: "OF" :+: prettyPrint(base)
     }
 
     private def prettyPrint(decl: Declarations): Doc = {
@@ -169,33 +125,9 @@ object PrettyPrintOberon {
             else
                 "VAR" :: line ::
                     indent(
-                        vcat(decl.vars.map(doVar)))) :#:
-            vcat(decl.procedures.map(prettyPrint))
+                        vcat(decl.vars.map(doVar))))
 
         indent(body) :: line
-    }
-
-    private def prettyPrint(proc: ProcedureDecl): Doc = {
-        def print(fp: FormalParam): Doc = {
-            (if (fp.pVar ne null) text("VAR") :: space else empty) ::
-                    withCommas(fp.ids.ids.map(idToDoc)) ::
-                    ":" :+: prettyPrint(fp.pType)
-        }
-        def params: Doc =
-            if ((proc.params ne null) && !proc.params.isEmpty)
-                parens(punctuate(semi :: space, proc.params.map(print)))
-            else
-                empty
-
-        "PROCEDURE" :+: proc.name :: params :: semi :: line ::
-        prettyPrint(proc.decl) ::
-        (if (proc.body ne null)
-            "BEGIN" :#:
-                    prettyPrint(proc.body)
-        else
-            empty) ::
-        "END" :+: proc.name2 :: semi
-
     }
 
     private def prettyPrint(expr: Expression): Doc = {

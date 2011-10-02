@@ -14,41 +14,21 @@ Module:
 StatementSequence: stmt=Statement (";" stmt=Statement)*;
 
 // note: this only exists so that we can add type to expression.
-option Expression
-    {var exprType: Any = null}
-    : Id;
+option Expression: Id;
 
 ConstantDef: name=Id EqOp expr=CompExpr ";";
 VarDef: vars=IdentList ":" varType=TypeValue ";";
-ProcedureDecl:
-    "PROCEDURE" name=Id
-        ("(" (params=FormalParam (";" params=FormalParam)*)? ")")?
-    ";"
-    decl=Declarations
-    ("BEGIN"
-        body=StatementSequence)?
-    "END" name2=Id;
-FormalParam: pVar="VAR"? ids=IdentList ":" pType=TypeValue;
-
 Declarations:
     ("CONST"
         consts=ConstantDef*)?
     ("TYPE"
         types=TypeDef*)?
     ("VAR"
-        vars=VarDef*)?
-    (procedures=ProcedureDecl ";")*;
+        vars=VarDef*)?;
 
 TypeDef: name=Id "=" tValue=TypeValue ";";
 
-option TypeValue:
-    Id
-    | RecordType
-    | ArrayType;
-
-RecordType: "RECORD" fields=FieldList (";" fields=FieldList)* "END";
-FieldList: ids=IdentList ":" idType=TypeValue;
-ArrayType: "ARRAY" size=SimpleExpr "OF" baseType=TypeValue;
+option TypeValue: Id;
 
 CompExpr
     returns Expression {makeBinary(op, left, right)}
@@ -86,16 +66,7 @@ option Factor returns Expression:
     | ParenExpr
     | NotExpr;
 
-option Lhs returns Expression:
-    Id  // This is necessary to make Id inherit from Expression
-    | SelectorExpr;
-
-SelectorExpr
-    returns Expression {makeSelector(id, selectors)}
-    : id=Id selectors=SelectorPart+;
-option SelectorPart: RecordSelector | ArraySelector;
-RecordSelector: "." Id;
-ArraySelector: "[" index=SimpleExpr "]";
+option Lhs returns Expression: Id;
 
 terminal NumberLit: ('0' .. '9')+;
 ParenExpr returns Expression {expr}: "(" expr=CompExpr ")";
@@ -109,13 +80,11 @@ option Statement:
     Assignment
     | ProcedureCall
     | IfStatement
-    | WhileStatement
-    | ForStatement
-    | CaseStatement;
+    | WhileStatement;
 
 Assignment: left=Lhs ":=" right=CompExpr;
 ProcedureCall:
-    proc=Id /* TODO: Selector* */  // WTF is selector doing here?
+    proc=Id
         ("(" args=CompExpr ("," args=CompExpr)* ")")?;
 
 IfStatement:
@@ -132,31 +101,10 @@ WhileStatement:
         body=StatementSequence
     "END";
 
-ForStatement:
-    "FOR" variable=Id ":=" start=SimpleExpr
-            "TO" end=SimpleExpr ("BY" step=SimpleExpr)? "DO"
-        body=StatementSequence
-    "END";
-//option ForDirection: To | DownTo;
-//To: "TO";
-//DownTo: "DOWNTO";
-
-CaseStatement:
-    "CASE" expr=SimpleExpr "OF"
-        clauses=CaseClause ("|" clauses=CaseClause)*
-        ("ELSE" elseClause=StatementSequence)?
-    "END";
-
-CaseClause:
-    items=CaseConstant ("," items=CaseConstant)* ":"
-    stmt=StatementSequence;
-
-CaseConstant: begin=NumberLit (".." end=NumberLit)?;
-
 terminal Id {
     var ref: CommonNode = null
-    var byRef: Boolean = false
-    def isByRef = byRef || ((ref ne null) && (ref.asInstanceOf[Id].byRef))
+//    var byRef: Boolean = false
+//    def isByRef = byRef || ((ref ne null) && (ref.asInstanceOf[Id].byRef))
     } : ('a'..'z'|'A'..'Z') ('a'..'z'|'A'..'Z'|'0'..'9')*;
 fragment MlComment: '/*' (~'*' | '*' ~'/')* '*/';
 fragment SlComment: '//' ~('\n'|'\r')*;
