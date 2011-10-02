@@ -8,12 +8,12 @@ object OberonMain extends MainBase {
         val grammar = new ast.OberonGrammar()
         for (arg <- sources) {
             grammar.parseFile(arg)
-            checkErrors(grammar.errors)
-
-            val nameErrors = NameBinding.process(grammar.tree)
-            checkErrors(nameErrors)
-
-//            println(PrettyPrintOberon.toString(grammar.tree))
+            if (!grammar.errors.isEmpty) {
+                println("parse failed")
+            } else {
+                val nameErrors = NameBinding.process(grammar.tree)
+                checkErrors(nameErrors)
+            }
         }
     }
 }
