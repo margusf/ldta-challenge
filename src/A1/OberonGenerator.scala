@@ -13,7 +13,7 @@ object OberonMain extends MainBase {
             val nameErrors = NameBinding.process(grammar.tree)
             checkErrors(nameErrors)
 
-            println(PrettyPrintOberon.toString(grammar.tree))
+//            println(PrettyPrintOberon.toString(grammar.tree))
         }
     }
 }
