@@ -8,7 +8,7 @@ class OberonGenerator(destDir: String)
         val simplified = Simplify.simplify(tree)
         println(PrettyPrintOberon.toString(simplified))
 
-        val cFile = sourceFile.replaceAll(".obr$", ".c")
+        val cFile = sourceFile.replaceAll(".ob$", ".c")
         val genTree = Codegen.generate(simplified)
         writeFile(cFile, PrettyPrintC.toString(genTree))
     }

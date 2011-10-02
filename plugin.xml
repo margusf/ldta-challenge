@@ -2,7 +2,7 @@
 <?eclipse version="3.4"?>
 <plugin>
    <extension point="org.eclipse.imp.runtime.languageDescription">
-      <language extensions="obr" description="Oberon0 example for LDTA tool challenge"
+      <language extensions="ob" description="Oberon0 example for LDTA tool challenge"
                 natureID="ee.cyber.simplicitas.oberonexample" language="oberon0_example"/>
    </extension>
    <extension id="oberon0_example.parserWrapper"
@@ -67,7 +67,7 @@
           point="org.eclipse.ui.popupMenus">
        <objectContribution
              id="oberon0_example.generatorPopUp"
-             nameFilter="*.obr"
+             nameFilter="*.ob"
              objectClass="org.eclipse.core.resources.IFile">
           <action
                 class="ee.cyber.simplicitas.oberonexample.OberonGenerateAction"
