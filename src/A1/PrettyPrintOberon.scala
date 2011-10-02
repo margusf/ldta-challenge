@@ -89,10 +89,6 @@ object PrettyPrintOberon {
             "END"
     }
 
-    private def prettyPrint(field: FieldList): Doc =
-        withCommas(field.ids.ids.map((id: Id) => text(id.text))) :: ":" :+:
-                prettyPrint(field.idType)
-
     private def prettyPrint(tv: TypeValue): Doc = tv match {
         case Id(name) =>
             text(name)
