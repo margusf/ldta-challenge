@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xhtml:html xmlns:xhtml="http://www.w3.org/1999/xhtml"><head><title>LDTA</title><meta http-equiv="content-type" content="text/html; charset=utf-8" /><meta name="keywords" content="Programming Debugging Language Descriptions Parsing Parsers Term Rewriting Attribute Grammars Functional Programming Debugging Model Driven Engineering Formal Methods Meta Programming" /><meta name="description" content="The International Workshop on Language Descriptions Tools and Applications" /><meta name="language" content="NL" /><link rel="stylesheet" href="./style.css" type="text/css" media="screen" /><!--Design by Free CSS Templates\nhttp://www.freecsstemplates.org\nReleased for free under a Creative Commons Attribution 2.5 License\n\nName       : Compressed \nDescription: A three-column, fixed-width template fit for 1024x768 screen resolutions.\nVersion    : 1.0\nReleased   : 20080524--></head><body><div id="logo"><h1 class="logo">Workshop on Language Descriptions, Tools, and Applications</h1></div><div id="page"><div class="sidebar" id="sidebar1"><br /><ul><li><h2>Important Dates</h2><ul><li>Abstract submission:</li><li>       Nov. 28, 2011</li><li>Full paper submission:</li><li>       Dec. 5, 2011</li><li>Author notification:</li><li>       Jan. 20, 2012</li><li>Tool challenge submission:</li><li>       Mar. 04, 2012</li><li>Camera-ready papers:</li><li>       Feb. 5, 2012</li><li>LDTA Workshop:</li><li>       Mar. 31-Apr. 1, 2012</li></ul><br /><h2>Past workshops</h2><ul><li><a href="2001/index.html">2001 Genova</a></li><li><a href="2002/index.html">2002 Grenoble</a></li><li><a href="2003/index.html">2003 Warsaw</a></li><li><a href="2004/index.html">2004 Barcelona</a></li><li><a href="2005/index.html">2005 Edinburgh</a></li><li><a href="2006/index.html">2006 Vienna</a></li><li><a href="2007/index.html">2007 Braga</a></li><li><a href="2008/index.html">2008 Budapest</a></li><li><a href="2009/index.html">2009 York</a></li><li><a href="2010/index.html">2010 Paphos</a></li><li><a href="2011/index.html">2011 Saarbrücken</a></li><li><a href="index.html">2012 Tallinn</a></li></ul><br /><h2>Past proceedings</h2><ul><li><a href="http://www.sciencedirect.com/science/issue/13109-2001-999559997-587094">2001</a></li><li><a href="http://www.sciencedirect.com/science/issue/13109-2002-999349996-587061">2002</a></li><li><a href="http://www.sciencedirect.com/science/issue/13109-2003-999179996-596016">2003</a></li><li><a href="http://www.sciencedirect.com/science/issue/13109-2004-998899999-550247">2004</a></li><li><a href="http://www.sciencedirect.com/science/issue/13109-2005-998589995-612769">2005</a></li><li><a href="http://www.sciencedirect.com/science/issue/13109-2006-998359997-635744">2006</a></li><li><a href="http://www.sciencedirect.com/science/issue/13109-2008-997969997-684405">2007</a></li><li><a href="http://www.sciencedirect.com/science/issue/13109-2009-997619994-1525096">2008</a></li><li><a href="http://www.sciencedirect.com/science/issue/13109-2010-997469992-2353758">2009</a></li><li><a href="http://portal.acm.org/citation.cfm?id=1868281">2010</a></li><li><a href="http://portal.acm.org/citation.cfm?id=1988783">2011</a></li></ul><br /></li></ul></div><div id="content"><div class="bgtop"><div class="bgbtm"><div class="post"><h1 class="title">Tool Challenge Description and Problem Set</h1><div class="entry"><p>
+The LDTA 2011 Tool Challenge is a community-building exercise to get
+tool developers working on the same problem, but with different tools
+and techniques.  The goal is to create a discussion that fosters a
+better understanding, among tool developers and tool users, of
+relative strengths and weaknesses of different language processing
+tools, techniques, and formalisms.     
+</p><h2>LDTA 2011 Tool Challenge Problem Set</h2><p>
+The LDTA 2011 Tool Challenge Problem Set is a collection of language
+processing tasks to be applied to a simple, but evolving, collection
+of related imperative programming languages.  The individual problems
+in the Problem Set can be viewed as points in a two dimensional space:
+the first dimension specifying language processing tasks and the
+second dimension indicating the languages to which these tasks are to
+be applied.  The task dimension consists of several traditional
+language processing tasks such as parsing, pretty printing, semantic
+analysis, optimization, and code generation. The language dimension
+consists of a sequence of evolving imperative programming
+languages.  These are all variations on Oberon0 (a small derivative of
+Pascal, Modula-2, and Oberon) used as an example language in Nicolas
+Wirth's book "Compiler Construction" (see URL below).
+</p><p>
+Note that not all aspects of most of the problems are fully and
+precisely defined; this is intentional.  The purpose of the tools
+challenge to better understand how various tools, techniques, and
+formalisms can be applied to a variety of language processing tasks
+and this can be accomplished even if some variation to the problems
+exists.
+</p><p>
+Furthermore, tool developers should not feel that they must complete
+all of, or even a majority of, the tasks for all of the languages in
+order to participate in the challenge or to present their results at
+the workshop.  Participants should look to demonstrate the unique
+qualities of their tool or technique and if this can be done on a
+subset of the tasks for the simple core languages then that is also
+encouraged.  Thus, participants may attempt to fill in all points in
+the 2 dimensional problem space or focus on those that they find most
+interesting and applicable to their tools and techniques. 
+</p><h2>Task Dimension</h2><p>
+The tasks to be completed for the various languages are all
+traditional compiler tasks for imperative programming languages.
+These are discussed in most compiler construction texts, including
+Wirth's, and have been used in other problem sets such as the TIL
+Chairmarks created by James Cordy and Eelco Visser.  
+</p><h3>T1. Parsing and Pretty Printing.</h3><p>
+Build a tool that reads in programs, constructs a parse tree
+(implicitly or explicitly), and then pretty-prints the parse tree.
+</p><h3>T2. Name binding.</h3><p>
+Build a tool that reads in syntactically valid programs and binds all
+name uses to their declarations.  If some names are not declared or
+declared more than once an appropriate error message should be
+displayed.
+</p><h3>T3. Type checking.</h3><p>
+Check that no type errors occur in the program; if any do, display
+appropriate error messages.  Solutions should aim at providing
+informative, helpful error messages at an appropriate abstraction
+level.
+</p><h3>T4. Source-to-source transformations.</h3><p>
+There are two source-to-source transformation tasks:
+</p><p>
+T4.a. The first asks to what extent can language features introduced
+in extended versions of the language be seen as extensions that can be
+"de-sugared" or reduced to language constructs in a previously 
+implemented version of the object language?  For example, how can
+control flow constructs introduced in language L2 (see below) be
+transformed into other constructs already implemented in L1.
+</p><p>
+T4.b. The second task is to apply a number of traditional
+optimizations.  These are constant propagation, dead code elimination,
+common sub-expression elimination, and strength reduction.
+</p><h3>T5. Code generation.</h3><p>
+There are two code generation tasks:
+</p><p>
+T5.a. The first is to translate Oberon0 to ANSI C; this should be
+straightforward as Oberon0 and C share many constructs.
+</p><p>
+T5.b. The second task is to translate to a lower-level language:
+Wirth's DLX, a simple RISC assembly language also described in his
+text.  Participants may, alternatively, apply the optimizations in
+task T4.b to the generated DLX code.
+</p><h2>Language dimension</h2><p>
+The object languages to be implemented in this challenge are all based
+on Oberon0.  This language is defined in <a href="http://www-old.oberon.ethz.ch/WirthPubl/CBEAll.pdf">Nicolas Wirth's textbook Compiler Construction</a>.
+Chapter 6 (p. 30-31) defines the basic syntax of Oberon0 and
+subsequent chapters describe its semantics.
+</p><p>
+We define a series of languages, in most cases, each building on the
+previous one:
+</p><ul><li> 
+L1: Oberon0 without procedures and with only primitive types (no
+arrays or records).
+</li><li>
+L2: created by adding additional control structures to L1.  Add a
+Pascal-style for-loop and a Pascal-style case statement.
+</li><li>
+L3: created by adding Oberon0 procedures to L2.</li><li>
+L4: created by adding Oberon0 arrays and records to L3.</li><li>
+
+L5: created by adding a participant-defined notion of pointers to L4.
+This requires a new type expression as well as operators to take an
+address and to de-reference a pointer.  The precise syntax of these
+can be based on Oberon, Pascal, C, or otherwise defined by the
+participant.
+</li></ul><h2>Choosing problems to solve</h2><p>
+The task dimension specifies 5 tasks and the language dimension
+specifies 5 languages, but participants are not expected to complete
+25 different software artifacts to solve each of these 25 problems.
+The languages are organized such that each is a subset, in terms of
+syntactic constructs, of the next language in the sequence. Thus, in
+many cases, a software artifact generated to solve a specific task for
+language L4 is also a solution for that task on languages L1, L2, and
+L3.
+</p><p>
+Furthermore, as stated above, participants need not solve all
+problems; they should choose problems in the grid that best exemplify
+the characteristics and features of their tool or technique.
+</p><p>
+By specifying simple languages such as L1 and L2 we aim to provide an
+easy path to participation in the tool challenge.  While we hope that
+participants will provide task solutions to the more complex languages
+they should not feel that they need to solve all the tasks on all the
+languages in order to participate. 
+</p><p>
+Another reason for specifying the object languages as a sequence of
+extended languages is to give participants the opportunity to show how
+language/task solutions can be developed in a modular manner in which
+extensions are added to an existing language/task solution to create
+another.  
+</p><p>
+To enable some compatibility of software artifacts from the
+participants and to foster the sharing of sample programs and test
+cases, we provide the following list of suggested software artifacts
+to be completed:
+</p><ul><li>Artifact 1: Task T1 on language L3.</li><li>Artifact 2: Task T1 on language L4.</li><li>Artifact 3: Task T2 and T3 on language L3 or L4.</li><li>Artifact 4: Task T4 on language L3 or L4.</li><li>Artifact 5: Task T5 on language L3 or L4.</li></ul><h2>Participant defined contributions</h2><p>
+Participants are encouraged to go beyond this problem set and include
+additional language features, processing tasks, or other components
+that specifically highlight interesting or special aspects of their
+tools and techniques.
+</p><p>
+For example, task 1 may be extended so that comments and layout are
+maintained in the pretty-printing of the input program or a second
+concrete syntax may be developed that has a more modern look-and-feel,
+perhaps something more akin to C, Java, or Haskell.  Participants may
+also consider developing some sort of integrated development
+environment support for the languages.  In keeping with the goal of
+tool generation, this support should be generated from the (possibly
+annotated) language specification.
+</p><p>
+The goal of these contributions should be to highlight special
+capabilities of the tool that may not be as visible on the predefined
+tasks.  
+</p><h2>Community Building</h2><p>
+The community building envisioned by this Tool Challenge does not need
+to wait until the workshop begins.  A Google-group has been set up
+to support discussion of the challenge problems and to encourage the
+sharing of test programs.  If you have questions about the challenge
+or about specific problems please ask them there.  The web page for
+this group is: <a href="http://groups.google.com/group/ldta-2011-tool-challenge">http://groups.google.com/group/ldta-2011-tool-challenge</a>.</p><h2>Submission of abstracts and intention to participate</h2><p>
+The Tool Challenge is open to developers of all kinds of grammarware
+tools and techniques.  To participate, tool developers must submit the
+following by March 5, 2011: Names of participants and the name of
+their tool or technique.  Presentation title and abstract.  The short
+abstract should specify on what aspects of the problem set the tool
+was applied, where it excelled and where no solution was offered
+and/or the solution was considered less than optimal.  We expect these
+to be only a few paragraphs in length.
+</p><p>
+This information is used for scheduling purposes and is not used for
+evaluation; as all tool developers interested in participating are
+welcome and will be given an opportunity to present their solution at
+the workshop.  Submission of this information indicates a commitment
+to attend LDTA and to participate in the workshop.  This information
+will be listed in the program.
+</p><p>
+Authors of submissions that appear to be outside of the scope of LDTA
+will be contacted to discuss the relevance of their work to the
+workshop.  Tool developers who question whether their work falls with
+the scope of LDTA are encouraged to contact the PC chairs early on for
+clarification.
+</p><h2>Joint Tool Challenge Paper</h2><p>
+After the workshop a joint paper will be written by participants and
+submitted to a journal, most likely Science of Computer Programming.
+It is separate from the proceedings of the workshop and any special
+journal issue for the workshop.
+</p><h2>LDTA Rubric</h2><p>
+In preparing the presentation of one's solution for the workshop,
+participants are strongly encouraged to provide an analysis of their
+solutions based on the following criteria.  The intent is to find
+common language for discussing the quality of the various solutions.
+</p><ul><li>
+ease of specification: Are the specifications declarative and at an
+   appropriately high level of abstraction?
+</li><li>
+analysis of specifications: Does the tool perform any domain specific
+   analysis over the specifications to detect errors or improve
+   performance?
+</li><li>
+performance: Does the tool process the specifications in a reasonable
+   amount of time and space?  Does the generated language processing
+   tool (e.g. a generated parser or code implementing an attribute
+   grammar) run efficiently in time and space?
+</li><li>
+flexibility, extensibility: How easy is it to modify and extend the
+   language specification?
+</li><li>
+modularity: Code reuse is critical in mainstream applications and
+   languages - to what degree does the tool or technique support this
+   in the evolving set of languages?
+</li><li>
+quality of error messages: Do errors in the language specification
+   result in error messages that are understandable and informative?
+   Do errors in programs processed by generated tools result in good
+   error messages (to the extent that the generating tools have some
+   effect on this)?
+</li><li>
+ease of use:  Overall, is the tool easy to use?
+</li></ul></div></div></div></div></div><div class="sidebar" id="sidebar2"><br /><ul><li><h2>Attendees</h2><ul><li><a href="http://www.etaps.org/">ETAPS</a> <a href="http://www.etaps.org/"><img width="80" src="images/etapsLogo.gif" /></a></li></ul></li><li><h2>Organization</h2><ul><li><a href="committees.html">Committees</a></li></ul></li><li><h2>Organizers</h2><ul><li><a href="http://organisation.ldta.info">Wiki</a></li></ul></li></ul></div></div><div style="clear: both;"><br /><div id="footer"><p class="legal">©2007 All Rights Reserved. 
+      Design by <a href="http://www.freecsstemplates.org/">Free CSS Templates</a></p></div></div></body></xhtml:html>

@@ -1,0 +1,163 @@
+grammar ee.cyber.simplicitas.oberonexample.ast.Oberon;
+
+scalaheader {
+import OberonExtras._
+}
+
+Module:
+    "MODULE" name1=Id ";"
+        decl=Declarations
+        ("BEGIN"
+            statements=StatementSequence)?
+    "END" name2=Id ".";
+
+StatementSequence: stmt=Statement (";" stmt=Statement)*;
+
+// note: this only exists so that we can add type to expression.
+option Expression
+    {var exprType: Any = null}
+    : Id;
+
+ConstantDef: name=Id EqOp expr=CompExpr ";";
+VarDef: vars=IdentList ":" varType=TypeValue ";";
+ProcedureDecl:
+    "PROCEDURE" name=Id
+        ("(" (params=FormalParam (";" params=FormalParam)*)? ")")?
+    ";"
+    decl=Declarations
+    ("BEGIN"
+        body=StatementSequence)?
+    "END" name2=Id;
+FormalParam: pVar="VAR"? ids=IdentList ":" pType=TypeValue;
+
+Declarations:
+    ("CONST"
+        consts=ConstantDef*)?
+    ("TYPE"
+        types=TypeDef*)?
+    ("VAR"
+        vars=VarDef*)?
+    (procedures=ProcedureDecl ";")*;
+
+TypeDef: name=Id "=" tValue=TypeValue ";";
+
+option TypeValue:
+    Id
+    | RecordType
+    | ArrayType;
+
+RecordType: "RECORD" fields=FieldList (";" fields=FieldList)* "END";
+FieldList: ids=IdentList ":" idType=TypeValue;
+ArrayType: "ARRAY" size=SimpleExpr "OF" baseType=TypeValue;
+
+CompExpr
+    returns Expression {makeBinary(op, left, right)}
+    : left=SimpleExpr (op=CompOp right=SimpleExpr)?;
+option CompOp {def text: String}: EqOp | OtherCompOps;
+terminal EqOp: "=";
+terminal OtherCompOps: "#" | "<" | "<=" | ">" | ">=";
+
+// TODO: fix issue 2869
+option SimpleExpr returns Expression: PosExpr | NegExpr | PlusExpr;
+
+PosExpr
+    returns Expression {Unary(UnaryOp.Pos, arg)}
+    : PlusOp arg=PlusExpr;
+terminal PlusOp: "+";
+terminal MinusOp: "-";
+terminal OrOp: "OR";
+NegExpr
+    returns Expression {Unary(UnaryOp.Neg, arg)}
+    : MinusOp arg=SimpleExpr;
+PlusExpr
+    returns Expression {makeBinary(ops, args)}
+    : args=Term (ops=PlusExprOp args=Term)*;
+option PlusExprOp
+    {def text: String}
+    : PlusOp | MinusOp | OrOp;
+
+Term
+    returns Expression {makeBinary(ops, args)}
+    : args=Factor (ops=TermOp args=Factor)*;
+terminal TermOp: "*" | "DIV" | "MOD" | "&";
+option Factor returns Expression:
+    Lhs
+    | NumberLit
+    | ParenExpr
+    | NotExpr;
+
+option Lhs returns Expression:
+    Id  // This is necessary to make Id inherit from Expression
+    | SelectorExpr;
+
+SelectorExpr
+    returns Expression {makeSelector(id, selectors)}
+    : id=Id selectors=SelectorPart+;
+option SelectorPart: RecordSelector | ArraySelector;
+RecordSelector: "." Id;
+ArraySelector: "[" index=SimpleExpr "]";
+
+terminal NumberLit: ('0' .. '9')+;
+ParenExpr returns Expression {expr}: "(" expr=CompExpr ")";
+NotExpr
+    returns Expression {Unary(UnaryOp.Not, expr)}
+    : "~" expr=Factor;
+
+IdentList: ids=Id ("," ids=Id)*;
+
+option Statement:
+    Assignment
+    | ProcedureCall
+    | IfStatement
+    | WhileStatement
+    | ForStatement
+    | CaseStatement;
+
+Assignment: left=Lhs ":=" right=CompExpr;
+ProcedureCall:
+    proc=Id /* TODO: Selector* */  // WTF is selector doing here?
+        ("(" args=CompExpr ("," args=CompExpr)* ")")?;
+
+IfStatement:
+    "IF" cond=CompExpr "THEN"
+        ifStmt=StatementSequence
+    ("ELSIF" cond=CompExpr "THEN"
+        ifStmt=StatementSequence)*
+    ("ELSE"
+        elseStmt=StatementSequence)?
+    "END";
+
+WhileStatement:
+    "WHILE" cond=CompExpr "DO"
+        body=StatementSequence
+    "END";
+
+ForStatement:
+    "FOR" variable=Id ":=" start=SimpleExpr
+            "TO" end=SimpleExpr ("BY" step=SimpleExpr)? "DO"
+        body=StatementSequence
+    "END";
+//option ForDirection: To | DownTo;
+//To: "TO";
+//DownTo: "DOWNTO";
+
+CaseStatement:
+    "CASE" expr=SimpleExpr "OF"
+        clauses=CaseClause ("|" clauses=CaseClause)*
+        ("ELSE" elseClause=StatementSequence)?
+    "END";
+
+CaseClause:
+    items=CaseConstant ("," items=CaseConstant)* ":"
+    stmt=StatementSequence;
+
+CaseConstant: begin=NumberLit (".." end=NumberLit)?;
+
+terminal Id {
+    var ref: CommonNode = null
+    var byRef: Boolean = false
+    def isByRef = byRef || ((ref ne null) && (ref.asInstanceOf[Id].byRef))
+    } : ('a'..'z'|'A'..'Z') ('a'..'z'|'A'..'Z'|'0'..'9')*;
+fragment MlComment: '/*' (~'*' | '*' ~'/')* '*/';
+fragment SlComment: '//' ~('\n'|'\r')*;
+hidden terminal WS: (' '|'\t'|'\r'|'\n'|SlComment|MlComment)+;

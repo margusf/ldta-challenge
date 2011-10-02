@@ -5,7 +5,7 @@
 
     <property name="target" value="${basedir}/target"/>
     <property name="tool-jar" value="${target}/oberon0-example-tool.jar"/>
-    
+
     <available file="${maven.repo.local}/simplicitas/mvn-ant/${simpl.version}/mvn-ant-${simpl.version}.xml"
         property="include_file"
         value="file://${maven.repo.local}/simplicitas/mvn-ant/${simpl.version}/mvn-ant-${simpl.version}.xml"/>
@@ -22,6 +22,31 @@
         <loadfile srcfile="${target}/deps" property="tool-deps"/>
         <path id="tool-deps" path="${tool-deps}"/>
     </target>
+
+    <target name="a1" depends="tool-deps">
+        <property name="src" value="${basedir}/src/A1"/>
+        <property name="dst" value="${target}/A1"/>
+
+        <!-- generate grammar -->
+        <taskdef name="grammar" classpathref="tool-deps"
+                 classname="ee.cyber.simplicitas.parse.GrammarTask"/>
+        <grammar src="${src}/OberonL1.spl"
+                 destdir="${dst}/gen/ee/cyber/simplicitas/oberonexample"/>
+
+        <!-- compile sources (together with the generated grammar) -->
+        <mkdir dir="${dst}/classes"/>
+        <fsc destdir="${dst}/classes" classpathref="tool-deps">
+            <src location="${dst}/gen"/>
+            <src location="${src}"/>
+        </fsc>
+        <javac destdir="${dst}/classes" srcdir="${dst}/gen" source="1.4"
+               includeantruntime="false" classpathref="tool-deps" encoding="UTF-8"/>
+
+        <!-- create tool jar -->
+        <jar destfile="${target}/oberon0-a1.jar" basedir="${dst}/classes"/>
+    </target>
+
+
 
     <target name="plugin-deps" depends="tool-deps">
         <antcall target="require">
@@ -40,10 +65,10 @@
 
         <!-- compile sources (together with the generated grammar) -->
         <mkdir dir="${target}/classes"/>
-        <scalac destdir="${target}/classes" classpathref="tool-deps">
+        <fsc destdir="${target}/classes" classpathref="tool-deps">
             <src location="${target}/gen"/>
             <src location="${basedir}/src/tool"/>
-        </scalac>
+        </fsc>
         <javac destdir="${target}/classes" srcdir="${target}/gen" source="1.4"
                includeantruntime="false" classpathref="tool-deps" encoding="UTF-8"/>
 
@@ -60,7 +85,7 @@
                 <path refid="tool-deps"/>
                 <path location="${tool-jar}"/>
             </classpath>
-            <arg line="--dest target/test sample.obr"/>
+            <arg line="--dest target/test sample.ob"/>
         </java>
     </target>
 
@@ -74,18 +99,18 @@
             <arg line="--dest target/doc src/tool/Oberon.spl"/>
         </java>
     </target>
-    
+
     <!-- builds the plugin -->
     <target name="plugin" depends="plugin-deps,tool">
         <mkdir dir="${target}/plugin"/>
-        <scalac destdir="${target}/plugin">
+        <fsc destdir="${target}/plugin">
             <src location="${basedir}/src/plugin"/>
             <classpath>
                 <path refid="plugin-deps"/>
                 <path location="${tool-jar}"/>
                 <fileset dir="${eclipse}/plugins" includes="**/*.jar"/>
             </classpath>
-        </scalac>
+        </fsc>
         <jar destfile="${target}/oberon0-example-plugin.jar" basedir="${target}/plugin"
              manifest="${basedir}/META-INF/MANIFEST.MF">
             <fileset dir="${basedir}" includes="plugin.xml"/>
