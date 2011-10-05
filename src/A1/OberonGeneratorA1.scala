@@ -1,8 +1,8 @@
 package ee.cyber.simplicitas.oberonexample
 
-import ee.cyber.simplicitas.{GeneratorBase, MainBase, PrettyPrint}
+import ee.cyber.simplicitas.MainBase
 
-object OberonMain extends MainBase {
+object OberonMainA1 extends MainBase {
     def main(argv: Array[String]) {
         parseOptions(argv)
         val grammar = new ast.OberonGrammar()
