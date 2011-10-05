@@ -15,7 +15,7 @@ object OberonMainA1 extends MainBase {
                 if (!otherErrors.isEmpty) {
                     println("parse failed")
                 } else {
-                    val nameErrors = NameBinding.process(grammar.tree)
+                    val nameErrors = NameBindingA1.process(grammar.tree)
                     checkErrors(nameErrors)
                 }
             }

@@ -25,10 +25,10 @@
         <path id="tool-deps" path="${tool-deps}"/>
     </target>
 
-    <target name="a1" depends="tool-deps">
         <property name="src1" value="${basedir}/src/A1"/>
         <property name="dst1" value="${target}/A1"/>
 
+    <target name="a1" depends="tool-deps">
         <!-- generate grammar -->
         <taskdef name="grammar" classpathref="tool-deps"
                  classname="ee.cyber.simplicitas.parse.GrammarTask"/>
@@ -62,6 +62,7 @@
         <mkdir dir="${dst2a}/classes"/>
         <fsc destdir="${dst2a}/classes" classpathref="tool-deps">
             <src location="${dst2a}/gen"/>
+            <src location="${src1}"/>
             <src location="${src2a}"/>
         </fsc>
         <javac destdir="${dst2a}/classes" srcdir="${dst2a}/gen" source="1.4"
