@@ -1,5 +1,5 @@
 <!-- ex: se sts=4 sw=4 expandtab: -->
-<project name="oberon0-example" default="plugin" basedir=".">
+<project name="oberon0-example" default="build" basedir=".">
     <property file="${basedir}/ant.properties"/>
     <property name="simpl.version" value="1.2.0"/>
 
@@ -15,6 +15,8 @@
         <url url="${include_file}"/>
     </import>
 
+	<target name="all-artifacts" depends="a1, a4"/>
+
     <target name="tool-deps" depends="copy-mvn-ant,init-dep,require-antlr,require-scala">
         <antcall target="require">
             <param name="artifact" value="simplicitas-tool/${simpl.version}"/>
@@ -24,29 +26,27 @@
     </target>
 
     <target name="a1" depends="tool-deps">
-        <property name="src" value="${basedir}/src/A1"/>
-        <property name="dst" value="${target}/A1"/>
+        <property name="src1" value="${basedir}/src/A1"/>
+        <property name="dst1" value="${target}/A1"/>
 
         <!-- generate grammar -->
         <taskdef name="grammar" classpathref="tool-deps"
                  classname="ee.cyber.simplicitas.parse.GrammarTask"/>
-        <grammar src="${src}/OberonL1.spl"
-                 destdir="${dst}/gen/ee/cyber/simplicitas/oberonexample"/>
+        <grammar src="${src1}/OberonL1.spl"
+                 destdir="${dst1}/gen/ee/cyber/simplicitas/oberonexample"/>
 
         <!-- compile sources (together with the generated grammar) -->
-        <mkdir dir="${dst}/classes"/>
-        <fsc destdir="${dst}/classes" classpathref="tool-deps">
-            <src location="${dst}/gen"/>
-            <src location="${src}"/>
+        <mkdir dir="${dst1}/classes"/>
+        <fsc destdir="${dst1}/classes" classpathref="tool-deps">
+            <src location="${dst1}/gen"/>
+            <src location="${src1}"/>
         </fsc>
-        <javac destdir="${dst}/classes" srcdir="${dst}/gen" source="1.4"
+        <javac destdir="${dst1}/classes" srcdir="${dst1}/gen" source="1.4"
                includeantruntime="false" classpathref="tool-deps" encoding="UTF-8"/>
 
         <!-- create tool jar -->
-        <jar destfile="${target}/oberon0-a1.jar" basedir="${dst}/classes"/>
+        <jar destfile="${target}/oberon0-a1.jar" basedir="${dst1}/classes"/>
     </target>
-
-
 
     <target name="plugin-deps" depends="tool-deps">
         <antcall target="require">
@@ -56,26 +56,27 @@
         <path id="plugin-deps" path="${plugin-deps}"/>
     </target>
 
-    <target name="tool" depends="tool-deps">
-        <!-- generate grammar -->
+    <target name="a4" depends="tool-deps">
+        <property name="src4" value="${basedir}/src/A4"/>
+        <property name="dst4" value="${target}/A4"/>
+        
+		<!-- generate grammar -->
         <taskdef name="grammar" classpathref="tool-deps"
                  classname="ee.cyber.simplicitas.parse.GrammarTask"/>
-        <grammar src="${basedir}/src/tool/Oberon.spl"
-                 destdir="${target}/gen/ee/cyber/simplicitas/oberonexample"/>
+        <grammar src="${src4}/OberonL4.spl"
+                 destdir="${dst4}/gen/ee/cyber/simplicitas/oberonexample"/>
 
         <!-- compile sources (together with the generated grammar) -->
-        <mkdir dir="${target}/classes"/>
-        <fsc destdir="${target}/classes" classpathref="tool-deps">
-            <src location="${target}/gen"/>
-            <src location="${basedir}/src/tool"/>
+        <mkdir dir="${dst4}/classes"/>
+        <fsc destdir="${dst4}/classes" classpathref="tool-deps">
+            <src location="${dst4}/gen"/>
+            <src location="${src4}"/>
         </fsc>
-        <javac destdir="${target}/classes" srcdir="${target}/gen" source="1.4"
+        <javac destdir="${dst4}/classes" srcdir="${dst4}/gen" source="1.4"
                includeantruntime="false" classpathref="tool-deps" encoding="UTF-8"/>
 
         <!-- create tool jar -->
-        <jar destfile="${tool-jar}" basedir="${target}/classes">
-            <fileset dir="${basedir}/src/tool" includes="*.stg"/>
-        </jar>
+        <jar destfile="${target}/oberon0-a4.jar" basedir="${dst4}/classes"/>
     </target>
 
     <target name="tool-run" depends="tool-deps">
@@ -89,19 +90,8 @@
         </java>
     </target>
 
-    <!-- generate documentation -->
-    <target name="grammar-doc" depends="tool">
-        <java classname="ee.cyber.simplicitas.ide.SimplMain" fork="true">
-            <classpath>
-                <path refid="tool-deps"/>
-                <path location="${tool-jar}"/>
-            </classpath>
-            <arg line="--dest target/doc src/tool/Oberon.spl"/>
-        </java>
-    </target>
-
     <!-- builds the plugin -->
-    <target name="plugin" depends="plugin-deps,tool">
+    <target name="plugin" depends="plugin-deps,a4">
         <mkdir dir="${target}/plugin"/>
         <fsc destdir="${target}/plugin">
             <src location="${basedir}/src/plugin"/>
@@ -124,6 +114,6 @@
         <delete dir="${target}"/>
     </target>
 
-    <target name="build" depends="plugin"/>
+    <target name="build" depends="all-artifacts"/>
     <target name="rebuild" depends="clean,build"/>
 </project>
