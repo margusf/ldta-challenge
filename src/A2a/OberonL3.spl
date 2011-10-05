@@ -13,3 +13,35 @@ Module:
         ("BEGIN"
             statements=StatementSequence)?
     "END" name2=Id ".";
+
+// Add procedures to Declarations rule.
+ProcedureDecl:
+    "PROCEDURE" name=Id
+        ("(" (params=FormalParam (";" params=FormalParam)*)? ")")?
+    ";"
+    decl=Declarations
+    ("BEGIN"
+        body=StatementSequence)?
+    "END" name2=Id;
+FormalParam: pVar="VAR"? ids=IdentList ":" pType=TypeValue;
+Declarations:
+    ("CONST"
+        consts=ConstantDef*)?
+    ("TYPE"
+        types=TypeDef*)?
+    ("VAR"
+        vars=VarDef*)?
+    (procedures=ProcedureDecl ";")*;
+
+// Add procedure call to statement rule.
+// TODO: should the call already be in L2?
+ProcedureCall:
+    proc=Id
+        ("(" args=CompExpr ("," args=CompExpr)* ")")?;
+option Statement:
+    Assignment
+    | ProcedureCall
+    | IfStatement
+    | WhileStatement
+    | ForStatement
+    | CaseStatement;

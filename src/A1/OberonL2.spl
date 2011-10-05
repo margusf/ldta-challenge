@@ -80,7 +80,9 @@ option Statement:
     Assignment
     | ProcedureCall
     | IfStatement
-    | WhileStatement;
+    | WhileStatement
+    | ForStatement
+    | CaseStatement;
 
 Assignment: left=Lhs ":=" right=CompExpr;
 ProcedureCall:
@@ -100,6 +102,27 @@ WhileStatement:
     "WHILE" cond=CompExpr "DO"
         body=StatementSequence
     "END";
+
+ForStatement:
+    "FOR" variable=Id ":=" start=SimpleExpr
+            "TO" end=SimpleExpr ("BY" step=SimpleExpr)? "DO"
+        body=StatementSequence
+    "END";
+//option ForDirection: To | DownTo;
+//To: "TO";
+//DownTo: "DOWNTO";
+
+CaseStatement:
+    "CASE" expr=SimpleExpr "OF"
+        clauses=CaseClause ("|" clauses=CaseClause)*
+        ("ELSE" elseClause=StatementSequence)?
+    "END";
+
+CaseClause:
+    items=CaseConstant ("," items=CaseConstant)* ":"
+    stmt=StatementSequence;
+
+CaseConstant: begin=NumberLit (".." end=NumberLit)?;
 
 terminal Id {
     var ref: CommonNode = null
