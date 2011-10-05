@@ -1,0 +1,112 @@
+grammar ee.cyber.simplicitas.oberonexample.ast.Oberon;
+
+scalaheader {
+import OberonExtras._
+}
+
+Module:
+    "MODULE" name1=Id ";"
+        decl=Declarations
+        ("BEGIN"
+            statements=StatementSequence)?
+    "END" name2=Id ".";
+
+StatementSequence: (stmt=Statement (";" stmt=Statement)*)?;
+
+// note: this only exists so that we can add type to expression.
+option Expression: Id;
+
+ConstantDef: name=Id EqOp expr=CompExpr ";";
+VarDef: vars=IdentList ":" varType=TypeValue ";";
+
+Declarations:
+    ("CONST"
+        consts=ConstantDef*)?
+    ("TYPE"
+        types=TypeDef*)?
+    ("VAR"
+        vars=VarDef*)?;
+
+TypeDef: name=Id "=" tValue=TypeValue ";";
+
+option TypeValue: Id;
+
+CompExpr
+    returns Expression {makeBinary(op, left, right)}
+    : left=SimpleExpr (op=CompOp right=SimpleExpr)?;
+option CompOp {def text: String}: EqOp | OtherCompOps;
+terminal EqOp: "=";
+terminal OtherCompOps: "#" | "<" | "<=" | ">" | ">=";
+
+// TODO: fix issue 2869
+option SimpleExpr returns Expression: PosExpr | NegExpr | PlusExpr;
+
+PosExpr
+    returns Expression {Unary(UnaryOp.Pos, arg)}
+    : PlusOp arg=PlusExpr;
+terminal PlusOp: "+";
+terminal MinusOp: "-";
+terminal OrOp: "OR";
+NegExpr
+    returns Expression {Unary(UnaryOp.Neg, arg)}
+    : MinusOp arg=SimpleExpr;
+PlusExpr
+    returns Expression {makeBinary(ops, args)}
+    : args=Term (ops=PlusExprOp args=Term)*;
+option PlusExprOp
+    {def text: String}
+    : PlusOp | MinusOp | OrOp;
+
+Term
+    returns Expression {makeBinary(ops, args)}
+    : args=Factor (ops=TermOp args=Factor)*;
+terminal TermOp: "*" | "DIV" | "MOD" | "&";
+option Factor returns Expression:
+    Lhs
+    | NumberLit
+    | ParenExpr
+    | NotExpr;
+
+option Lhs returns Expression: Id;
+
+terminal NumberLit: ('0' .. '9')+;
+ParenExpr returns Expression {expr}: "(" expr=CompExpr ")";
+NotExpr
+    returns Expression {Unary(UnaryOp.Not, expr)}
+    : "~" expr=Factor;
+
+IdentList: ids=Id ("," ids=Id)*;
+
+option Statement:
+    Assignment
+    | ProcedureCall
+    | IfStatement
+    | WhileStatement;
+
+Assignment: left=Lhs ":=" right=CompExpr;
+ProcedureCall:
+    proc=Id
+        ("(" args=CompExpr ("," args=CompExpr)* ")")?;
+
+IfStatement:
+    "IF" cond=CompExpr "THEN"
+        ifStmt=StatementSequence
+    ("ELSIF" cond=CompExpr "THEN"
+        ifStmt=StatementSequence)*
+    ("ELSE"
+        elseStmt=StatementSequence)?
+    "END";
+
+WhileStatement:
+    "WHILE" cond=CompExpr "DO"
+        body=StatementSequence
+    "END";
+
+terminal Id {
+    var ref: CommonNode = null
+//    var byRef: Boolean = false
+//    def isByRef = byRef || ((ref ne null) && (ref.asInstanceOf[Id].byRef))
+    } : ('a'..'z'|'A'..'Z') ('a'..'z'|'A'..'Z'|'0'..'9')*;
+fragment MlComment: '(*' (~'*' | '*' ~')')* '*)';
+fragment SlComment: '//' ~('\n'|'\r')*;
+hidden terminal WS: (' '|'\t'|'\r'|'\n'|SlComment|MlComment)+;

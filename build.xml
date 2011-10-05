@@ -15,7 +15,7 @@
         <url url="${include_file}"/>
     </import>
 
-	<target name="all-artifacts" depends="a1, a4"/>
+	<target name="all-artifacts" depends="a1, a2a, a4"/>
 
     <target name="tool-deps" depends="copy-mvn-ant,init-dep,require-antlr,require-scala">
         <antcall target="require">
@@ -32,7 +32,7 @@
         <!-- generate grammar -->
         <taskdef name="grammar" classpathref="tool-deps"
                  classname="ee.cyber.simplicitas.parse.GrammarTask"/>
-        <grammar src="${src1}/OberonL1.spl"
+        <grammar src="${src1}/OberonL2.spl"
                  destdir="${dst1}/gen/ee/cyber/simplicitas/oberonexample"/>
 
         <!-- compile sources (together with the generated grammar) -->
@@ -46,6 +46,29 @@
 
         <!-- create tool jar -->
         <jar destfile="${target}/oberon0-a1.jar" basedir="${dst1}/classes"/>
+    </target>
+
+    <target name="a2a" depends="tool-deps">
+        <property name="src2a" value="${basedir}/src/A2a"/>
+        <property name="dst2a" value="${target}/A2a"/>
+
+        <!-- generate grammar -->
+        <taskdef name="grammar" classpathref="tool-deps"
+                 classname="ee.cyber.simplicitas.parse.GrammarTask"/>
+        <grammar src="${src2a}/OberonL3.spl"
+                 destdir="${dst2a}/gen/ee/cyber/simplicitas/oberonexample"/>
+
+        <!-- compile sources (together with the generated grammar) -->
+        <mkdir dir="${dst2a}/classes"/>
+        <fsc destdir="${dst2a}/classes" classpathref="tool-deps">
+            <src location="${dst2a}/gen"/>
+            <src location="${src2a}"/>
+        </fsc>
+        <javac destdir="${dst2a}/classes" srcdir="${dst2a}/gen" source="1.4"
+               includeantruntime="false" classpathref="tool-deps" encoding="UTF-8"/>
+
+        <!-- create tool jar -->
+        <jar destfile="${target}/oberon0-a2a.jar" basedir="${dst2a}/classes"/>
     </target>
 
     <target name="plugin-deps" depends="tool-deps">
