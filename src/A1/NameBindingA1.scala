@@ -31,7 +31,7 @@ object NameBindingA1 {
     def processStatement(stm: Statement, env: Env) {
         stm match {
             case Assignment(lhs @ Id(_), right) =>
-                env.check(lhs, false)
+                env.check(lhs, true)
                 processExpr(right, env)
             case ProcedureCall(proc, args) =>
                 // TODO: not supported
@@ -115,7 +115,7 @@ object NameBindingA1 {
     def processExpr(expr: Expression, env: Env) {
         expr match {
             case id @ Id(name) =>
-                env.check(id, true)
+                env.check(id, false)
             case Binary(op, left, right) =>
                 processExpr(left, env)
                 processExpr(right, env)
@@ -148,7 +148,7 @@ class Env(parent: Env,
 
     def check(name: Id, lhs: Boolean) {
         get(name.text) match {
-            case Some((_, isAssignable)) if (lhs && isAssignable) =>
+            case Some((_, isAssignable)) if (!lhs || isAssignable) =>
                 None
             case _ =>
                 throw new NameError(name)
