@@ -27,8 +27,13 @@ object OberonMainA1 extends MainBase {
                     println("parse failed")
                     logErrors(arg, otherErrors)
                 } else {
-                    val nameErrors = NameBindingA1.process(grammar.tree)
-                    checkErrors(nameErrors)
+                    NameBindingA1.process(grammar.tree) match {
+                        case Some(msg) =>
+                            println("line: " + msg.startLine +
+                                    "  " + msg.message)
+                        case None =>
+                            ()
+                    }
                 }
             }
         }
