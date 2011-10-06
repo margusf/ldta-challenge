@@ -7,6 +7,10 @@ import ee.cyber.simplicitas.{CommonNode, SourceLocation, SourceMessage}
 object NameBindingA1 {
     def process(module: Module): Option[SourceMessage] = {
         try {
+            if (module.name1 != module.name2) {
+                throw NameError(module.name2)
+            }
+
             val env = processDeclarations(module.decl, Env.initialEnv)
             processStatements(module.statements, env)
 
