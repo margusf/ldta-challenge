@@ -217,6 +217,12 @@ object Env {
 //        fun("OR", bool, bool, bool)
 //    )
 //
+
+    val predefs = Map[String, (Id, Boolean)](
+        "TRUE" -> (Id("TRUE"), false),
+        "FALSE" -> (Id("FALSE"), false)
+    )
+
     val preTypes = Map[String, Id](
         "INTEGER" -> Id("INTEGER"),
         "BOOLEAN" -> Id("BOOLEAN")
@@ -224,7 +230,7 @@ object Env {
 
     def initialEnv =
         new Env(null, Map.empty, Map.empty) {
-            override def get(name: String) = None
+            override def get(name: String) = predefs.get(name)
             override def getType(name: String) = preTypes.get(name)
             override def toString = "()"
         }
