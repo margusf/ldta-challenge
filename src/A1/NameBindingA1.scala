@@ -81,13 +81,20 @@ object NameBindingA1 {
             for (vd <- decl.vars; id <- vd.vars.ids)
                 yield id
         checkDuplicates(varList)
+        for (vd <- decl.vars) {
+            checkType(vd.varType, newEnv)
+        }
         newEnv = newEnv.addPrimitives(varList)
 
         newEnv
     }
 
     def checkType(td: TypeDef, env: Env) {
-        td.tValue match {
+        checkType(td.tValue, env)
+    }
+
+    def checkType(tv: TypeValue, env: Env) {
+        tv match {
             case id @ Id(name) =>
                 env.checkType(id)
         }
