@@ -11,7 +11,7 @@ Module:
             statements=StatementSequence)?
     "END" name2=Id ".";
 
-StatementSequence: (stmt=Statement (";" stmt=Statement)*)?;
+StatementSequence: (stmt=Statement (";" stmt=Statement?)*)?;
 
 // note: this only exists so that we can add type to expression.
 option Expression: Id;
