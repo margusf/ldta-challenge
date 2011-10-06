@@ -65,26 +65,26 @@ object NameBindingA1 {
         var newEnv = env
 
         val typeNames = decl.types.map(_.name)
+        val constNames = decl.consts.map(_.name)
+        val varNames =
+            for (vd <- decl.vars; id <- vd.vars.ids)
+                yield id
+        checkDuplicates(typeNames ++ constNames ++ varNames)
+
         for (td <- decl.types) {
             checkType(td, newEnv)
             newEnv = newEnv.addType(td.name)
         }
 
-        val constNames = decl.consts.map(_.name)
         for (cd <- decl.consts) {
             val cType = processExpr(cd.expr, newEnv)
             newEnv = newEnv.addConst(cd.name)
         }
 
-        val varNames =
-            for (vd <- decl.vars; id <- vd.vars.ids)
-                yield id
         for (vd <- decl.vars) {
             checkType(vd.varType, newEnv)
         }
         newEnv = newEnv.addPrimitives(varNames)
-
-        checkDuplicates(typeNames ++ constNames ++ varNames)
 
         newEnv
     }
