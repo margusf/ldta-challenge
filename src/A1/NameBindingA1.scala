@@ -64,7 +64,11 @@ object NameBindingA1 {
         // TODO: check types and duplicate names in same scope.
         var newEnv = env
 
+        val typeNames = decl.types.map(_.name)
+        checkDuplicates(typeNames)
+
         for (td <- decl.types) {
+            checkType(td, newEnv)
             newEnv = newEnv.addType(td.name)
         }
 
@@ -80,6 +84,13 @@ object NameBindingA1 {
         newEnv = newEnv.addPrimitives(varList)
 
         newEnv
+    }
+
+    def checkType(td: TypeDef, env: Env) {
+        td.tValue match {
+            case id @ Id(name) =>
+                env.checkType(id)
+        }
     }
 
     def checkDuplicates(ids: List[Id]) {
@@ -137,6 +148,15 @@ class Env(parent: Env,
         }
     }
 
+    def checkType(id: Id) {
+        getType(id.text) match {
+            case Some(_) =>
+                ()
+            case None =>
+                throw new NameError(id)
+        }
+    }
+
     def get(name: String): Option[(Id, Boolean)] =
         if (defs.contains(name))
             Some(defs(name))
@@ -150,13 +170,12 @@ class Env(parent: Env,
 //            case None => None
 //        }
 //
-//    def getType(name: String): Option[OType] =
-//        if (types.contains(name))
-//            Some(types(name))
-//        else
-//            parent.getType(name)
-//
-//
+    def getType(name: String): Option[Id] =
+        if (types.contains(name))
+            Some(types(name))
+        else
+            parent.getType(name)
+
     override def toString = defs.toString + " ==> " + parent
 }
 
@@ -191,15 +210,15 @@ object Env {
 //        fun("OR", bool, bool, bool)
 //    )
 //
-//    val preTypes = Map[String, OType](
-//        "INTEGER" -> Types.int,
-//        "BOOLEAN" -> Types.bool
-//    )
+    val preTypes = Map[String, Id](
+        "INTEGER" -> Id("INTEGER"),
+        "BOOLEAN" -> Id("BOOLEAN")
+    )
 
     def initialEnv =
         new Env(null, Map.empty, Map.empty) {
             override def get(name: String) = None
-//            override def getType(name: String) = None
+            override def getType(name: String) = preTypes.get(name)
             override def toString = "()"
         }
 }
