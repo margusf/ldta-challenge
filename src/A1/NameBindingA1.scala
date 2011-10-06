@@ -73,11 +73,25 @@ object NameBindingA1 {
             newEnv = newEnv.addConst(cd.name)
         }
 
-        for (vd <- decl.vars; id <- vd.vars.ids) {
-            newEnv = newEnv.addPrimitive(id)
-        }
+        val varList =
+            for (vd <- decl.vars; id <- vd.vars.ids)
+                yield id
+        checkDuplicates(varList)
+        newEnv = newEnv.addPrimitives(varList)
 
         newEnv
+    }
+
+    def checkDuplicates(ids: List[Id]) {
+        val checked = collection.mutable.Set[String]()
+
+        for (id <- ids) {
+            if (checked(id.text)) {
+                throw NameError(id)
+            } else {
+                checked += id.text
+            }
+        }
     }
 
     def processExpr(expr: Expression, env: Env) {
@@ -103,8 +117,10 @@ case class NameError(id: Id) extends Exception
 class Env(parent: Env,
           defs: Map[String, (Id, Boolean)],
           types: Map[String, Id]) {
-    def addPrimitive(id: Id) =
-        new Env(this, Map(id.text -> (id, true)), Map.empty)
+    def addPrimitives(ids: List[Id]) = {
+        val idMap = ids.map((id: Id) => id.text -> (id, true)).toMap
+        new Env(this, idMap, Map.empty)
+    }
 
     def addConst(id: Id) =
         new Env(this, Map(id.text -> (id, false)), Map.empty)
