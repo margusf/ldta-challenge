@@ -173,7 +173,11 @@ abstract class EnvBase(parent: EnvBase,
     }
 
     def checkType(id: Id) {
-        getType(id.text) match {
+        check(id, getType(id.text))
+    }
+
+    protected def check(id: Id, found: Option[Any]) {
+        found match {
             case Some(_) =>
                 ()
             case None =>
