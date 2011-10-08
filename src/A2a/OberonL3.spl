@@ -37,7 +37,7 @@ Declarations:
 // TODO: should the call already be in L2?
 ProcedureCall:
     proc=Id
-        ("(" args=CompExpr ("," args=CompExpr)* ")")?;
+        ("(" (args=CompExpr ("," args=CompExpr)*)? ")")?;
 option Statement:
     Assignment
     | ProcedureCall
