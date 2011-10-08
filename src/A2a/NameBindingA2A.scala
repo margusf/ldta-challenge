@@ -96,51 +96,77 @@ object NameBindingA2A extends NameBindingA1 {
     }
 }
 
+object IdType extends Enumeration {
+    type Val = Value
+
+    val Var, Const, Proc = Value
+}
+
 class EnvA2A(parent: EnvA2A,
-             defs: Map[String, (Id, Boolean)],
-             types: Map[String, Id],
-             procs: Map[String, Id])
-        extends EnvBase(parent, defs, types) {
+             defs: Map[String, IdType.Val],
+             types: Map[String, Id])
+        extends EnvBase(parent, Map.empty, types) {
+    import IdType._
+
     def addVars(ids: List[Id]) = {
-        val idMap = ids.map((id: Id) => id.text -> (id, true)).toMap
-        new EnvA2A(this, idMap, Map.empty, Map.empty)
+        val idMap = ids.map((id: Id) => id.text -> Var).toMap
+        new EnvA2A(this, idMap, Map.empty)
     }
 
     def addConst(id: Id) =
-        new EnvA2A(this, Map(id.text -> (id, false)), Map.empty, Map.empty)
+        new EnvA2A(this, Map(id.text -> Const), Map.empty)
 
     def addType(id: Id) =
-        new EnvA2A(this, Map.empty, Map(id.text -> id), Map.empty)
+        new EnvA2A(this, Map.empty, Map(id.text -> id))
 
     def addProcedures(ids: List[Id]) =
-        new EnvA2A(this, Map.empty, Map.empty,
-                ids.map((id: Id) => id.text -> id).toMap)
+        new EnvA2A(this,
+            ids.map((id: Id) => id.text -> Proc).toMap,
+            Map.empty)
 
     def checkProc(id: Id) {
-        check(id, getProc(id.text))
+        if (getDef(id) != Proc)
+            throw new NameError(id)
     }
 
-    protected def getProc(name: String): Option[Id] =
-        if (procs.contains(name))
-            Some(procs(name))
-        else
-            parent.getProc(name)
+    override def checkVar(id: Id, lhs: Boolean) {
+        getDef(id) match {
+            case Var => ()
+            case Const if (!lhs) => ()
+            case _ =>
+                throw new NameError(id)
+        }
+    }
 
-    override def toString = "[" + defs + ", " + procs + "] => " + parent
+    protected def getDef(id: Id): IdType.Val =
+        if (defs.contains(id.text))
+            defs(id.text)
+        else
+            parent.getDef(id)
+
+    override def toString = "[" + defs + "] => " + parent
 }
 
 object EnvA2A {
-    val preProcs = Map(
-        "Write" -> Id("Write"),
-        "WriteLn" -> Id("WriteLn"),
-        "Read" -> Id("Read")
+    import IdType._
+
+    val preDefs = Map(
+        "Write" -> Proc,
+        "WriteLn" -> Proc,
+        "Read" -> Proc,
+        "TRUE" -> Const,
+        "FALSE" -> Const
     )
 
     val initialEnv =
-        new EnvA2A(null, Map.empty, Map.empty, Map.empty) {
-            override def get(name: String) = EnvA1.predefs.get(name)
+        new EnvA2A(null, Map.empty, Map.empty) {
+            override def getDef(id: Id) =
+                if (preDefs.contains(id.text))
+                    preDefs(id.text)
+                else
+                    throw new NameError(id)
+
             override def getType(name: String) = EnvA1.preTypes.get(name)
-            override def getProc(name: String) = preProcs.get(name)
             override def toString = "()"
         }
 }
