@@ -11,7 +11,7 @@ object NameBindingA1 {
                 throw NameError(module.name2)
             }
 
-            val env = processDeclarations(module.decl, Env.initialEnv)
+            val env = processDeclarations(module.decl, EnvA1.initialEnv)
             processStatements(module.statements, env)
 
             None
@@ -22,16 +22,16 @@ object NameBindingA1 {
         }
     }
 
-    def processStatements(seq: StatementSequence, env: Env) {
+    def processStatements(seq: StatementSequence, env: EnvA1) {
         if (seq ne null) {
             seq.stmt.foreach(processStatement(_, env))
         }
     }
 
-    def processStatement(stm: Statement, env: Env) {
+    def processStatement(stm: Statement, env: EnvA1) {
         stm match {
             case Assignment(lhs @ Id(_), right) =>
-                env.check(lhs, true)
+                env.checkVar(lhs, true)
                 processExpr(right, env)
             case IfStatement(cond, ifStmt, elseStmt) =>
                 cond.foreach(processExpr(_, env))
@@ -58,7 +58,7 @@ object NameBindingA1 {
         }
     }
 
-    def processDeclarations(decl: Declarations, env: Env): Env = {
+    def processDeclarations(decl: Declarations, env: EnvA1): EnvA1 = {
         // TODO: check types and duplicate names in same scope.
         var newEnv = env
 
@@ -87,11 +87,11 @@ object NameBindingA1 {
         newEnv
     }
 
-    def checkType(td: TypeDef, env: Env) {
+    def checkType(td: TypeDef, env: EnvA1) {
         checkType(td.tValue, env)
     }
 
-    def checkType(tv: TypeValue, env: Env) {
+    def checkType(tv: TypeValue, env: EnvA1) {
         tv match {
             case id @ Id(name) =>
                 env.checkType(id)
@@ -110,10 +110,10 @@ object NameBindingA1 {
         }
     }
 
-    def processExpr(expr: Expression, env: Env) {
+    def processExpr(expr: Expression, env: EnvA1) {
         expr match {
             case id @ Id(name) =>
-                env.check(id, false)
+                env.checkVar(id, false)
             case Binary(op, left, right) =>
                 processExpr(left, env)
                 processExpr(right, env)
@@ -130,21 +130,21 @@ object NameBindingA1 {
 
 case class NameError(id: Id) extends Exception
 
-class Env(parent: Env,
+class EnvA1(parent: EnvA1,
           defs: Map[String, (Id, Boolean)],
           types: Map[String, Id]) {
     def addPrimitives(ids: List[Id]) = {
         val idMap = ids.map((id: Id) => id.text -> (id, true)).toMap
-        new Env(this, idMap, Map.empty)
+        new EnvA1(this, idMap, Map.empty)
     }
 
     def addConst(id: Id) =
-        new Env(this, Map(id.text -> (id, false)), Map.empty)
+        new EnvA1(this, Map(id.text -> (id, false)), Map.empty)
 
     def addType(id: Id) =
-        new Env(this, Map.empty, Map(id.text -> id))
+        new EnvA1(this, Map.empty, Map(id.text -> id))
 
-    def check(name: Id, lhs: Boolean) {
+    def checkVar(name: Id, lhs: Boolean) {
         get(name.text) match {
             case Some((_, isAssignable)) if (!lhs || isAssignable) =>
                 None
@@ -184,7 +184,7 @@ class Env(parent: Env,
     override def toString = defs.toString + " ==> " + parent
 }
 
-object Env {
+object EnvA1 {
 //    import Types._
 
 //    def proc(name: String, params: OType*) =
@@ -227,7 +227,7 @@ object Env {
     )
 
     def initialEnv =
-        new Env(null, Map.empty, Map.empty) {
+        new EnvA1(null, Map.empty, Map.empty) {
             override def get(name: String) = predefs.get(name)
             override def getType(name: String) = preTypes.get(name)
             override def toString = "()"
