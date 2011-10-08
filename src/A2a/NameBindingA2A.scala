@@ -10,6 +10,12 @@ object NameBindingA2A extends NameBindingA1 {
                                      env: EnvBase): EnvA2A = {
         var newEnv = super.processDeclarations(decl, env).asInstanceOf[EnvA2A]
 
+        for (proc <- decl.procedures) {
+            if (proc.name != proc.name2) {
+                throw new NameError(proc.name)
+            }
+        }
+
         newEnv
     }
 
