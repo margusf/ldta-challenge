@@ -65,12 +65,6 @@ object PrettyPrintOberon {
     private def prettyPrint(stmt: Statement): Doc = stmt match {
         case Assignment(left, right) =>
             prettyPrint(left) :+: ":=" :+: prettyPrint(right)
-        case ProcedureCall(name, args) =>
-            name ::
-            (if (args.isEmpty)
-                empty
-            else
-                parens(withCommas(args.map(prettyPrint))))
         case IfStatement(cond, ifStmt, elseStmt) =>
             "IF" :+: prettyPrint(cond.head) :+:
                     "THEN" :#:

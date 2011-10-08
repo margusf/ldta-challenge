@@ -78,16 +78,12 @@ IdentList: ids=Id ("," ids=Id)*;
 
 option Statement:
     Assignment
-    | ProcedureCall
     | IfStatement
     | WhileStatement
     | ForStatement
     | CaseStatement;
 
 Assignment: left=Lhs ":=" right=CompExpr;
-ProcedureCall:
-    proc=Id
-        ("(" args=CompExpr ("," args=CompExpr)* ")")?;
 
 IfStatement:
     "IF" cond=CompExpr "THEN"

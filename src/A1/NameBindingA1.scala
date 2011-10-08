@@ -33,8 +33,6 @@ object NameBindingA1 {
             case Assignment(lhs @ Id(_), right) =>
                 env.check(lhs, true)
                 processExpr(right, env)
-            case ProcedureCall(proc, args) =>
-                // TODO: not supported
             case IfStatement(cond, ifStmt, elseStmt) =>
                 cond.foreach(processExpr(_, env))
                 ifStmt.foreach(processStatements(_, env))
