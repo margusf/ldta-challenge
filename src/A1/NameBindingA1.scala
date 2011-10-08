@@ -4,14 +4,18 @@ import ast._
 import collection.mutable.ArrayBuffer
 import ee.cyber.simplicitas.{CommonNode, SourceLocation, SourceMessage}
 
-object NameBindingA1 {
+object NameBindingA1 extends NameBindingA1
+
+class NameBindingA1 {
+    protected def initialEnv: EnvBase = EnvA1.initialEnv
+
     def process(module: Module): Option[SourceMessage] = {
         try {
             if (module.name1 != module.name2) {
                 throw NameError(module.name2)
             }
 
-            val env = processDeclarations(module.decl, EnvA1.initialEnv)
+            val env = processDeclarations(module.decl, initialEnv)
             processStatements(module.statements, env)
 
             None
@@ -22,13 +26,13 @@ object NameBindingA1 {
         }
     }
 
-    def processStatements(seq: StatementSequence, env: EnvA1) {
+    def processStatements(seq: StatementSequence, env: EnvBase) {
         if (seq ne null) {
             seq.stmt.foreach(processStatement(_, env))
         }
     }
 
-    def processStatement(stm: Statement, env: EnvA1) {
+    def processStatement(stm: Statement, env: EnvBase) {
         stm match {
             case Assignment(lhs @ Id(_), right) =>
                 env.checkVar(lhs, true)
@@ -58,8 +62,7 @@ object NameBindingA1 {
         }
     }
 
-    def processDeclarations(decl: Declarations, env: EnvA1): EnvA1 = {
-        // TODO: check types and duplicate names in same scope.
+    def processDeclarations(decl: Declarations, env: EnvBase): EnvBase = {
         var newEnv = env
 
         val typeNames = decl.types.map(_.name)
@@ -82,16 +85,16 @@ object NameBindingA1 {
         for (vd <- decl.vars) {
             checkType(vd.varType, newEnv)
         }
-        newEnv = newEnv.addPrimitives(varNames)
+        newEnv = newEnv.addVars(varNames)
 
         newEnv
     }
 
-    def checkType(td: TypeDef, env: EnvA1) {
+    def checkType(td: TypeDef, env: EnvBase) {
         checkType(td.tValue, env)
     }
 
-    def checkType(tv: TypeValue, env: EnvA1) {
+    def checkType(tv: TypeValue, env: EnvBase) {
         tv match {
             case id @ Id(name) =>
                 env.checkType(id)
@@ -110,7 +113,7 @@ object NameBindingA1 {
         }
     }
 
-    def processExpr(expr: Expression, env: EnvA1) {
+    def processExpr(expr: Expression, env: EnvBase) {
         expr match {
             case id @ Id(name) =>
                 env.checkVar(id, false)
@@ -125,15 +128,14 @@ object NameBindingA1 {
                 throw new IllegalArgumentException(expr.toString)
         }
     }
-
 }
 
 case class NameError(id: Id) extends Exception
 
 class EnvA1(parent: EnvA1,
           defs: Map[String, (Id, Boolean)],
-          types: Map[String, Id]) {
-    def addPrimitives(ids: List[Id]) = {
+          types: Map[String, Id]) extends EnvBase(parent, defs, types) {
+    def addVars(ids: List[Id]) = {
         val idMap = ids.map((id: Id) => id.text -> (id, true)).toMap
         new EnvA1(this, idMap, Map.empty)
     }
@@ -143,6 +145,16 @@ class EnvA1(parent: EnvA1,
 
     def addType(id: Id) =
         new EnvA1(this, Map.empty, Map(id.text -> id))
+}
+
+abstract class EnvBase(parent: EnvBase,
+                       defs: Map[String, (Id, Boolean)],
+                       types: Map[String, Id]) {
+    def addVars(ids: List[Id]): EnvBase
+
+    def addConst(id: Id): EnvBase
+
+    def addType(id: Id): EnvBase
 
     def checkVar(name: Id, lhs: Boolean) {
         get(name.text) match {
@@ -162,7 +174,7 @@ class EnvA1(parent: EnvA1,
         }
     }
 
-    def get(name: String): Option[(Id, Boolean)] =
+    protected def get(name: String): Option[(Id, Boolean)] =
         if (defs.contains(name))
             Some(defs(name))
         else
@@ -175,7 +187,7 @@ class EnvA1(parent: EnvA1,
 //            case None => None
 //        }
 //
-    def getType(name: String): Option[Id] =
+    protected def getType(name: String): Option[Id] =
         if (types.contains(name))
             Some(types(name))
         else
@@ -226,7 +238,7 @@ object EnvA1 {
         "BOOLEAN" -> Id("BOOLEAN")
     )
 
-    def initialEnv =
+    val initialEnv =
         new EnvA1(null, Map.empty, Map.empty) {
             override def get(name: String) = predefs.get(name)
             override def getType(name: String) = preTypes.get(name)
