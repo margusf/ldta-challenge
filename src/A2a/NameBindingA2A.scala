@@ -70,6 +70,9 @@ object NameBindingA2A extends NameBindingA1 {
             for (fp <- proc.params; id <- fp.ids.ids)
                 yield id
 
+        // Inner procedures conflict with parameters.
+        checkDuplicates(params ++ procedureNames(proc.decl))
+
         // Sub-procedures are without proc name and params.
         val procEnv = processDeclarations(proc.decl, env, false)
         // body is processed with variables and params.
@@ -144,6 +147,9 @@ class EnvA2A(parent: EnvA2A,
         else
             parent.getDef(id)
 
+    def containsDef(name: String): Boolean =
+        defs.contains(name) || parent.containsDef(name)
+
     override def toString = "[" + defs + "] => " + parent
 }
 
@@ -165,6 +171,7 @@ object EnvA2A {
                     preDefs(id.text)
                 else
                     throw new NameError(id)
+            override def containsDef(name: String) = preDefs.contains(name)
 
             override def getType(name: String) = EnvA1.preTypes.get(name)
             override def toString = "()"
