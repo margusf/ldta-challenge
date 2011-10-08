@@ -65,12 +65,7 @@ class NameBindingA1 {
     def processDeclarations(decl: Declarations, env: EnvBase): EnvBase = {
         var newEnv = env
 
-        val typeNames = decl.types.map(_.name)
-        val constNames = decl.consts.map(_.name)
-        val varNames =
-            for (vd <- decl.vars; id <- vd.vars.ids)
-                yield id
-        checkDuplicates(typeNames ++ constNames ++ varNames)
+        checkDuplicates(getIdList(decl))
 
         for (td <- decl.types) {
             checkType(td, newEnv)
@@ -85,9 +80,21 @@ class NameBindingA1 {
         for (vd <- decl.vars) {
             checkType(vd.varType, newEnv)
         }
-        newEnv = newEnv.addVars(varNames)
+        newEnv = newEnv.addVars(getVarNames(decl))
 
         newEnv
+    }
+
+    protected def getVarNames(decl: Declarations) =
+        for (vd <- decl.vars; id <- vd.vars.ids)
+            yield id
+
+    protected def getIdList(decl: Declarations) = {
+        val typeNames = decl.types.map(_.name)
+        val constNames = decl.consts.map(_.name)
+        val varNames = getVarNames(decl)
+
+        typeNames ++ constNames ++ varNames
     }
 
     def checkType(td: TypeDef, env: EnvBase) {
