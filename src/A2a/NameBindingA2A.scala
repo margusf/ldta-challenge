@@ -6,15 +6,59 @@ import ee.cyber.simplicitas.SourceMessage
 object NameBindingA2A extends NameBindingA1 {
     override def initialEnv = EnvA2A.initialEnv
 
-    override def processDeclarations(decl: Declarations,
-                                     env: EnvBase): EnvA2A = {
-        val newEnv = super.processDeclarations(decl, env).asInstanceOf[EnvA2A]
+    override def process(module: Module): Option[SourceMessage] = {
+        try {
+            if (module.name1 != module.name2) {
+                throw NameError(module.name2)
+            }
 
-        for (proc <- decl.procedures) {
-            doProcedure(proc, newEnv)
+            val env = processDeclarations(module.decl, initialEnv, true)
+            processStatements(module.statements, env)
+
+            None
+        } catch {
+            case NameError(id: Id) =>
+                Some(new SourceMessage(
+                    "Invalid identifier: " + id.text, SourceMessage.Error, id))
+        }
+    }
+
+    def processDeclarations(decl: Declarations,
+                                     env: EnvBase,
+                                     includeVars: Boolean): EnvA2A = {
+        // TODO: refactor this a bit?
+
+        // subEnv is used for checking nested procedures.
+        var subEnv = env.asInstanceOf[EnvA2A]
+
+        checkDuplicates(getIdList(decl))
+
+        for (td <- decl.types) {
+            checkType(td, subEnv)
+            subEnv = subEnv.addType(td.name)
         }
 
-        newEnv.addProcedures(procedureNames(decl))
+        for (cd <- decl.consts) {
+            val cType = processExpr(cd.expr, subEnv)
+            subEnv = subEnv.addConst(cd.name)
+        }
+
+        for (vd <- decl.vars) {
+            checkType(vd.varType, subEnv)
+        }
+
+        var withVars = subEnv.addVars(getVarNames(decl))
+
+        for (proc <- decl.procedures) {
+            doProcedure(proc, if (includeVars) withVars else subEnv)
+
+            subEnv = subEnv.addProcedures(List(proc.name))
+            withVars = withVars.addProcedures(List(proc.name))
+        }
+
+        // The procedure body will be checked with environment
+        // containing all the vars and sub-procedures.
+        withVars
     }
 
     def doProcedure(proc: ProcedureDecl, env: EnvA2A) {
@@ -26,10 +70,11 @@ object NameBindingA2A extends NameBindingA1 {
             for (fp <- proc.params; id <- fp.ids.ids)
                 yield id
 
-        val procEnv = processDeclarations(
-                proc.decl,
-                env.addProcedures(List(proc.name)).addVars(params))
-        processStatements(proc.body, procEnv)
+        // Sub-procedures are without proc name and params.
+        val procEnv = processDeclarations(proc.decl, env, false)
+        // body is processed with variables and params.
+        processStatements(proc.body,
+            procEnv.addProcedures(List(proc.name)).addVars(params))
     }
 
     override def getIdList(decl: Declarations) =
