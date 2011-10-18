@@ -165,8 +165,8 @@ abstract class EnvBase(parent: EnvBase,
 
     def checkVar(name: Id, lhs: Boolean) {
         get(name.text) match {
-            case Some((_, isAssignable)) if (!lhs || isAssignable) =>
-                None
+            case Some((refId, isAssignable)) if (!lhs || isAssignable) =>
+                name.ref = refId
             case _ =>
                 throw new NameError(name)
         }
