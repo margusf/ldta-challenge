@@ -14,7 +14,9 @@ Module:
 StatementSequence: (stmt=Statement (";" stmt=Statement?)*)?;
 
 // note: this only exists so that we can add type to expression.
-option Expression: Id;
+option Expression
+    {var exprType: Any = null}
+    : Id;
 
 ConstantDef: name=Id EqOp expr=CompExpr ";";
 VarDef: vars=IdentList ":" varType=TypeValue ";";

@@ -11,21 +11,21 @@ object Types {
     val invalid = OInvalid()
 }
 
-case class OAny extends OType {
+case class OAny() extends OType {
     def assignableFrom(other: OType) = true
     override def toString = "ANY"
 }
 
-case class OInvalid extends OType {
+case class OInvalid() extends OType {
     def assignableFrom(other: OType) = true
 }
 
-case class OBool extends OType {
+case class OBool() extends OType {
     def assignableFrom(other: OType) = other.isInstanceOf[OBool]
     override def toString = "BOOLEAN"
 }
 
-case class OInt extends OType {
+case class OInt() extends OType {
     def assignableFrom(other: OType) = other.isInstanceOf[OInt]
     override def toString = "INTEGER"
 }

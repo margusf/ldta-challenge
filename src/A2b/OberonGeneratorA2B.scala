@@ -33,7 +33,13 @@ object OberonMainA2B extends MainBase {
                                     "  " + msg.message)
                         case None =>
                             // TODO: invoke type checking.
-                            ()
+                            TypecheckA2B.process(grammar.tree) match {
+                                case Some(msg) =>
+                                    println("line: " + msg.startLine +
+                                            "  " + msg.message)
+                                case None =>
+                                    ()
+                            }
                     }
                 }
             }
