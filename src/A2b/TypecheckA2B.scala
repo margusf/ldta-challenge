@@ -197,6 +197,9 @@ object Env {
         "BOOLEAN" -> Types.bool
     )
 
+    EnvA1.TRUE.exprType = bool
+    EnvA1.FALSE.exprType = bool
+
     def initialEnv =
         new Env(null, preTypes) {
             override def getType(name: String) = preTypes.get(name)

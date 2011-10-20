@@ -239,9 +239,12 @@ object EnvA1 {
 //    )
 //
 
+    val TRUE = Id("TRUE")
+    val FALSE = Id("FALSE")
+
     val predefs = Map[String, (Id, Boolean)](
-        "TRUE" -> (Id("TRUE"), false),
-        "FALSE" -> (Id("FALSE"), false)
+        "TRUE" -> (TRUE, false),
+        "FALSE" -> (FALSE, false)
     )
 
     val preTypes = Map[String, Id](
