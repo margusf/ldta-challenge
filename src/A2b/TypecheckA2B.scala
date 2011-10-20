@@ -107,30 +107,27 @@ class TypecheckA2B {
     }
 
     private def processExpr(expr: Expression): OType = {
-//        def processFunCall(op: String, args: List[Expression]) = {
-//            env.getFun(op) match {
-//                case Some(OFunc(aTypes, rType)) =>
-//                    for ((a, t) <- args.zip(aTypes)) {
-//                        val aType = processExpr(a, env)
-//                        checkType(t, aType, a)
-//                    }
-//
-//                    rType
-//                case None =>
-//                    addError("Unknown function: " + op, expr)
-//                    Types.invalid
-//            }
-//        }
+        def processFunCall(op: String, args: List[Expression]) = {
+            Env.operators.get(op) match {
+                case Some(OFunc(aTypes, rType)) =>
+                    for ((a, t) <- args.zip(aTypes)) {
+                        val aType = processExpr(a)
+                        checkType(t, aType, a)
+                    }
+
+                    rType
+                case None =>
+                    throw new TypeError(expr, "Unknown function: " + op)
+            }
+        }
 
         val retType = expr match {
             case id @ Id(name) =>
                 id.ref.asInstanceOf[Id].exprType.asInstanceOf[OType]
             case Binary(op, left, right) =>
-                Types.any
-//                processFunCall(op.toString, List(left, right))
+                processFunCall(op.toString, List(left, right))
             case Unary(op, arg) =>
-//                processFunCall(op.toString, List(arg))
-                Types.any
+                processFunCall(op.toString, List(arg))
             case NumberLit(_) =>
                 Types.int
             case _ =>
@@ -142,10 +139,7 @@ class TypecheckA2B {
 
     private def checkType(expected: OType, received: OType,
                           loc: SourceLocation) {
-        // Do not report type errors for expressions that are already
-        // incorrectly typed.
-        if (expected != Types.invalid && received != Types.invalid &&
-                !expected.assignableFrom(received)) {
+        if (!expected.assignableFrom(received)) {
             throw new TypeError(loc,
                 "Type error: expected " + expected + ", but got " + received)
         }
@@ -172,13 +166,15 @@ object Env {
         (name, (null, OProc(params)))
 
     def fun(name: String, ret: OType, params: OType*) =
-        (name, (null, OFunc(params, ret)))
+        (name -> OFunc(params, ret))
 
     val predefs = Map[String, Tuple2[CommonNode, OType]](
         proc("Write", any),
         proc("WriteLn"),
-        proc("Read", any),
+        proc("Read", any)
+    )
 
+    val operators = Map[String, OType](
         fun("+", int, int, int),
         fun("-", int, int, int),
         fun("*", int, int, int),

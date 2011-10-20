@@ -8,16 +8,11 @@ object Types {
     val any = OAny()
     val bool = OBool()
     val int = OInt()
-    val invalid = OInvalid()
 }
 
 case class OAny() extends OType {
     def assignableFrom(other: OType) = true
     override def toString = "ANY"
-}
-
-case class OInvalid() extends OType {
-    def assignableFrom(other: OType) = true
 }
 
 case class OBool() extends OType {
