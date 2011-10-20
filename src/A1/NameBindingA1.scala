@@ -65,17 +65,17 @@ class NameBindingA1 {
     def processDeclarations(decl: Declarations, env: EnvBase): EnvBase = {
         var newEnv = env
 
-        checkDuplicates(getIdList(decl))
-
         for (td <- decl.types) {
             checkType(td, newEnv)
             newEnv = newEnv.addType(td.name)
         }
 
         for (cd <- decl.consts) {
-            val cType = processExpr(cd.expr, newEnv)
+            processExpr(cd.expr, newEnv)
             newEnv = newEnv.addConst(cd.name)
         }
+
+        checkDuplicates(getIdList(decl))
 
         for (vd <- decl.vars) {
             checkType(vd.varType, newEnv)
