@@ -1,3 +1,7 @@
+/*
+ * // Copyright (c) 2010 Cybernetica AS / STACC
+ */
+
 package ee.cyber.simplicitas.oberonexample
 
 import collection.mutable.ArrayBuffer
@@ -175,6 +179,8 @@ object Env {
     )
 
     val operators = Map[String, OType](
+        fun("~", bool, bool),
+
         fun("+", int, int, int),
         fun("-", int, int, int),
         fun("*", int, int, int),
