@@ -127,6 +127,8 @@ terminal Id {
 //    var byRef: Boolean = false
 //    def isByRef = byRef || ((ref ne null) && (ref.asInstanceOf[Id].byRef))
     } : ('a'..'z'|'A'..'Z') ('a'..'z'|'A'..'Z'|'0'..'9')*;
-fragment MlComment: '/*' (~'*' | '*' ~'/')* '*/';
-fragment SlComment: '//' ~('\n'|'\r')*;
-hidden terminal WS: (' '|'\t'|'\r'|'\n'|SlComment|MlComment)+;
+
+hidden terminal MlComment: '(*' (~'*' | ('*' ~')'))* '*)';
+
+//hidden termina SlComment: '//' ~('\n'|'\r')*;
+hidden terminal WS: (' '|'\t'|'\r'|'\n')+;
