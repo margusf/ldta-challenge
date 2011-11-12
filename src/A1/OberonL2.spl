@@ -135,5 +135,4 @@ fragment NestedComment:
         (~('*' | '(') | ('*' ~')') | ('(' ~ '*') | NestedComment)*
     '*)';
 
-//hidden termina SlComment: '//' ~('\n'|'\r')*;
 hidden terminal WS: (' '|'\t'|'\r'|'\n')+;
