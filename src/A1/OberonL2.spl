@@ -120,7 +120,7 @@ CaseClause:
     items=CaseConstant ("," items=CaseConstant)* ":"
     stmt=StatementSequence;
 
-CaseConstant: begin=NumberLit (".." end=NumberLit)?;
+CaseConstant: begin=SimpleExpr (".." end=SimpleExpr)?;
 
 terminal Id {
     var ref: CommonNode = null

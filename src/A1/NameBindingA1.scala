@@ -54,6 +54,12 @@ class NameBindingA1 {
             case CaseStatement(expr, clauses, elseClause) =>
                 processExpr(expr, env)
                 for (clause <- clauses) {
+                    for (clItem <- clause.items) {
+                        processExpr(clItem.begin, env)
+                        if (clItem.end ne null) {
+                            processExpr(clItem.end, env)
+                        }
+                    }
                     processStatements(clause.stmt, env)
                 }
                 processStatements(elseClause, env)
