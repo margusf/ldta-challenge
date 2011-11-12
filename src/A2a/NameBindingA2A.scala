@@ -78,6 +78,11 @@ object NameBindingA2A extends NameBindingA1 {
         // Inner procedures conflict with parameters.
         checkDuplicates(params ++ procedureNames(proc.decl))
 
+        // Check parameter types.
+        for (fp <- proc.params) {
+            checkType(fp.pType, env)
+        }
+
         // Sub-procedures are without proc name and params.
         val procEnv = processDeclarations(proc.decl, env, false)
         // body is processed with variables and params.
