@@ -102,8 +102,8 @@ WhileStatement:
     "END";
 
 ForStatement:
-    "FOR" variable=Id ":=" start=SimpleExpr
-            "TO" end=SimpleExpr ("BY" step=SimpleExpr)? "DO"
+    "FOR" variable=Id ":=" start=CompExpr
+            "TO" end=CompExpr ("BY" step=CompExpr)? "DO"
         body=StatementSequence
     "END";
 //option ForDirection: To | DownTo;
