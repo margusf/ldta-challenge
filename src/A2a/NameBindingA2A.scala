@@ -31,23 +31,28 @@ object NameBindingA2A extends NameBindingA1 {
         // subEnv is used for checking nested procedures.
         var subEnv = env.asInstanceOf[EnvA2A]
 
-        checkDuplicates(getIdList(decl))
-
         for (td <- decl.types) {
             checkType(td, subEnv)
             subEnv = subEnv.addType(td.name)
         }
+        checkDuplicates(decl.types.map(_.name))
 
         for (cd <- decl.consts) {
             val cType = processExpr(cd.expr, subEnv)
             subEnv = subEnv.addConst(cd.name)
         }
+        checkDuplicates(decl.consts.map(_.name))
 
         for (vd <- decl.vars) {
             checkType(vd.varType, subEnv)
         }
 
+        checkDuplicates(getIdList(decl))
+
         var withVars = subEnv.addVars(getVarNames(decl))
+
+        // And now all together...
+        checkDuplicates(getIdList(decl))
 
         for (proc <- decl.procedures) {
             doProcedure(proc, if (includeVars) withVars else subEnv)
