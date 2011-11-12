@@ -111,7 +111,7 @@ ForStatement:
 //DownTo: "DOWNTO";
 
 CaseStatement:
-    "CASE" expr=SimpleExpr "OF"
+    "CASE" expr=CompExpr "OF"
         clauses=CaseClause ("|" clauses=CaseClause)*
         ("ELSE" elseClause=StatementSequence)?
     "END";
