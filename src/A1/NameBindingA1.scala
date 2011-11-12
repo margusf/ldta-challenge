@@ -45,7 +45,7 @@ class NameBindingA1 {
                 processExpr(cond, env)
                 processStatements(body, env)
             case ForStatement(varName, start, end, step, body) =>
-                processExpr(varName, env)
+                env.checkVar(varName, true)
                 processExpr(start, env)
                 processExpr(end, env)
                 if (step ne null)
