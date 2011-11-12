@@ -128,7 +128,12 @@ terminal Id {
 //    def isByRef = byRef || ((ref ne null) && (ref.asInstanceOf[Id].byRef))
     } : ('a'..'z'|'A'..'Z') ('a'..'z'|'A'..'Z'|'0'..'9')*;
 
-hidden terminal MlComment: '(*' (~'*' | ('*' ~')'))* '*)';
+hidden terminal MlComment: NestedComment;
+
+fragment NestedComment:
+    '(*'
+        (~('*' | '(') | ('*' ~')') | ('(' ~ '*') | NestedComment)*
+    '*)';
 
 //hidden termina SlComment: '//' ~('\n'|'\r')*;
 hidden terminal WS: (' '|'\t'|'\r'|'\n')+;
