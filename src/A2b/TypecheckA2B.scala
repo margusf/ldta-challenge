@@ -126,7 +126,7 @@ class TypecheckA2B {
 
         expr match {
             case id @ Id(name) =>
-                val ref = id.ref.asInstanceOf[Id]
+                val ref = if (id.ref eq null) id else  id.ref.asInstanceOf[Id]
                 checkType(Types.int, ref.exprType.asInstanceOf[OType], expr)
 
                 ref.constVal match {
