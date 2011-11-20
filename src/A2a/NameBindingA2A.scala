@@ -116,42 +116,44 @@ object IdType extends Enumeration {
 }
 
 class EnvA2A(parent: EnvA2A,
-             defs: Map[String, IdType.Val],
+             defs: Map[String, (Id, IdType.Val)],
              types: Map[String, Id])
         extends EnvBase(parent, Map.empty, types) {
     import IdType._
 
     def addVars(ids: List[Id]) = {
-        val idMap = ids.map((id: Id) => id.text -> Var).toMap
+        val idMap = ids.map((id: Id) => id.text -> (id, Var)).toMap
         new EnvA2A(this, idMap, Map.empty)
     }
 
     def addConst(id: Id) =
-        new EnvA2A(this, Map(id.text -> Const), Map.empty)
+        new EnvA2A(this, Map(id.text -> (id, Const)), Map.empty)
 
     def addType(id: Id) =
         new EnvA2A(this, Map.empty, Map(id.text -> id))
 
     def addProcedures(ids: List[Id]) =
         new EnvA2A(this,
-            ids.map((id: Id) => id.text -> Proc).toMap,
+            ids.map((id: Id) => id.text -> (id, Proc)).toMap,
             Map.empty)
 
     def checkProc(id: Id) {
-        if (getDef(id) != Proc)
-            throw new NameError(id)
+        getDef(id) match {
+            case (ref, Proc) => id.ref = ref
+            case _ => throw new NameError(id)
+        }
     }
 
     override def checkVar(id: Id, lhs: Boolean) {
         getDef(id) match {
-            case Var => ()
-            case Const if (!lhs) => ()
+            case (ref, Var) => id.ref = ref
+            case (ref, Const) if (!lhs) => id.ref = ref
             case _ =>
                 throw new NameError(id)
         }
     }
 
-    protected def getDef(id: Id): IdType.Val =
+    protected def getDef(id: Id): (Id, IdType.Val) =
         if (defs.contains(id.text))
             defs(id.text)
         else
@@ -167,11 +169,11 @@ object EnvA2A {
     import IdType._
 
     val preDefs = Map(
-        "Write" -> Proc,
-        "WriteLn" -> Proc,
-        "Read" -> Proc,
-        "TRUE" -> Const,
-        "FALSE" -> Const
+        "Write" -> (Id("Write"), Proc),
+        "WriteLn" -> (Id("WriteLn"), Proc),
+        "Read" -> (Id("Read"), Proc),
+        "TRUE" -> (EnvA1.TRUE, Const),
+        "FALSE" -> (EnvA1.FALSE, Const)
     )
 
     val initialEnv =
