@@ -4,6 +4,7 @@
 
 package ee.cyber.simplicitas.oberonexample
 
+import collection.mutable.ArrayBuffer
 import ast._
 import ee.cyber.simplicitas.{CommonNode, SourceLocation, SourceMessage}
 
@@ -35,6 +36,8 @@ class TypecheckA3 extends TypecheckA2B {
 
     override def processDeclarations(decl: Declarations,
             env: EnvA2B): EnvA2B = {
+        // TODO: eliminate copypaste.
+
         var newEnv = env
 
         for (td <- decl.types) {
@@ -51,9 +54,29 @@ class TypecheckA3 extends TypecheckA2B {
             id.exprType = typeValue(vd.varType, newEnv)
         }
 
-        // TODO: add procedures
+        // New in A3
+        for (pd <- decl.procedures) {
+            processProcedureDecl(pd, newEnv)
+        }
 
         newEnv
+    }
+
+    def processProcedureDecl(pd: ProcedureDecl, env: EnvA2B) {
+        // TODO: process parameters.
+        for (fp <- pd.params;
+                if fp ne null;
+                id <- fp.ids.ids) {
+//            id.byRef = fp.pVar ne null
+//            if (fp.pVar ne null)
+//                println("by ref variable: " + id.text)
+            val paramType = typeValue(fp.pType, env)
+
+            // ...
+        }
+        processDeclarations(pd.decl, env)
+
+        processStatements(pd.body)
     }
 
     // TODO: add stuff

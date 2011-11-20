@@ -30,7 +30,7 @@ class TypecheckA2B {
         processStatements(module.statements)
     }
 
-    private def processStatements(seq: StatementSequence) {
+    protected def processStatements(seq: StatementSequence) {
         if (seq ne null) {
             seq.stmt.foreach(processStatement)
         }
