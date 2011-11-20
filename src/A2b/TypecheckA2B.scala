@@ -64,16 +64,16 @@ class TypecheckA2B {
                 checkInteger(start)
                 checkInteger(end)
                 if (step ne null) {
-                    checkConstExpr(step, Types.int)
+                    evalConstExpr(step)
                 }
                 processStatements(body)
             case CaseStatement(expr, clauses, elseClause) =>
                 checkInteger(expr)
                 for (clause <- clauses) {
                     for (ci <- clause.items) {
-                        checkConstExpr(ci.begin, Types.int)
+                        evalConstExpr(ci.begin)
                         if (ci.end ne null) {
-                            checkConstExpr(ci.end, Types.int)
+                            evalConstExpr(ci.end)
                         }
                     }
                     processStatements(clause.stmt)
@@ -84,10 +84,67 @@ class TypecheckA2B {
         }
     }
 
-    private def checkConstExpr(expr: Expression, expected: OType) {
-        // TODO: specially deal with constant expressions.
-        val exprType = processExpr(expr)
-        checkType(expected, exprType, expr)
+    private def evalConstExpr(expr: Expression): Int = {
+        def checkIntFun(op: String) {
+            Env.operators.get(op) match {
+                case Some(OFunc(_, Types.int)) =>
+                    // OK
+                case _ =>
+                    throw new TypeError(expr, "Int required: " + op)
+            }
+        }
+
+        def evalBinary(op: String, left: Int, right: Int) = {
+            checkIntFun(op)
+
+            op match {
+                case "+" => left + right
+                case "-" => left - right
+                case "*" => left * right
+                case "DIV" =>
+                    if (right == 0)
+                        throw new TypeError(expr, "Division by zero")
+                    else
+                        left / right
+                case "MOD" =>
+                    if (right == 0)
+                        throw new TypeError(expr, "Division by zero")
+                    else
+                        left % right
+
+            }
+        }
+
+        def evalUnary(op: String, arg: Int) = {
+            checkIntFun(op)
+
+            op match {
+                case "+" => arg
+                case "-" => -arg
+            }
+        }
+
+        expr match {
+            case id @ Id(name) =>
+                val ref = id.ref.asInstanceOf[Id]
+                checkType(Types.int, ref.exprType.asInstanceOf[OType], expr)
+
+                ref.constVal match {
+                    case None => // Not a constant.
+                        throw new TypeError(id, "Not a constant: " + name)
+                    case Some(cv) =>
+                        cv
+                }
+            case Binary(op, left, right) =>
+                evalBinary(op.toString,
+                    evalConstExpr(left), evalConstExpr(right))
+            case Unary(op, arg) =>
+                evalUnary(op.toString, evalConstExpr(arg))
+            case NumberLit(v) =>
+                v.toInt
+            case _ =>
+                throw new IllegalArgumentException(expr.toString)
+        }
     }
 
     private def processDeclarations(decl: Declarations, env: Env): Env = {
@@ -98,8 +155,9 @@ class TypecheckA2B {
         }
 
         for (cd <- decl.consts) {
-            checkInteger(cd.expr)
+            val cv = evalConstExpr(cd.expr)
             cd.name.exprType = Types.int
+            cd.name.constVal = Some(cv)
         }
 
         for (vd <- decl.vars; id <- vd.vars.ids) {
@@ -143,7 +201,7 @@ class TypecheckA2B {
             case Binary(op, left, right) =>
                 processFunCall(op.toString, List(left, right))
             case Unary(op, arg) =>
-                processFunCall(op.toString, List(arg))
+                processFunCall("U" + op.toString, List(arg))
             case NumberLit(_) =>
                 Types.int
             case _ =>
@@ -191,7 +249,9 @@ object Env {
     )
 
     val operators = Map[String, OType](
-        fun("~", bool, bool),
+        fun("U~", bool, bool),
+        fun("U-", int, int),
+        fun("U+", int, int),
 
         fun("+", int, int, int),
         fun("-", int, int, int),
