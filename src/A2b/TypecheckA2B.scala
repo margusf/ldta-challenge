@@ -64,18 +64,30 @@ class TypecheckA2B {
                 checkInteger(start)
                 checkInteger(end)
                 if (step ne null) {
-                    checkInteger(step)
+                    checkConstExpr(step, Types.int)
                 }
                 processStatements(body)
             case CaseStatement(expr, clauses, elseClause) =>
                 checkInteger(expr)
                 for (clause <- clauses) {
+                    for (ci <- clause.items) {
+                        checkConstExpr(ci.begin, Types.int)
+                        if (ci.end ne null) {
+                            checkConstExpr(ci.end, Types.int)
+                        }
+                    }
                     processStatements(clause.stmt)
                 }
                 processStatements(elseClause)
             case _ =>
                 ()
         }
+    }
+
+    private def checkConstExpr(expr: Expression, expected: OType) {
+        // TODO: specially deal with constant expressions.
+        val exprType = processExpr(expr)
+        checkType(expected, exprType, expr)
     }
 
     private def processDeclarations(decl: Declarations, env: Env): Env = {
@@ -86,8 +98,8 @@ class TypecheckA2B {
         }
 
         for (cd <- decl.consts) {
-            val cType = processExpr(cd.expr)
-            cd.name.exprType = cType
+            checkInteger(cd.expr)
+            cd.name.exprType = Types.int
         }
 
         for (vd <- decl.vars; id <- vd.vars.ids) {
