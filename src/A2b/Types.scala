@@ -32,7 +32,7 @@ case class OFunc(args: Seq[OType], ret: OType) extends OType with ONonData {
     def assignableFrom(other: OType) = true
 }
 
-case class OProc(args: Seq[OType]) extends OType with ONonData {
+case class OProc(args: Seq[(OType, Boolean)]) extends OType with ONonData {
     def assignableFrom(other: OType) = true
 }
 

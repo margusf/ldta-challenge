@@ -77,6 +77,8 @@ class TypecheckA3 extends TypecheckA2B {
         processDeclarations(pd.decl, env)
 
         processStatements(pd.body)
+
+//        pd.name.exprType = T
     }
 
     // TODO: add stuff
