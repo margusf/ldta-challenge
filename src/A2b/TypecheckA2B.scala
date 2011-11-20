@@ -46,7 +46,7 @@ class TypecheckA2B {
         checkType(Types.int, exprType, expr)
     }
 
-    private def processStatement(stm: Statement) {
+    protected def processStatement(stm: Statement) {
         stm match {
             case Assignment(left, right) =>
                 val leftType = processExpr(left)
@@ -84,7 +84,7 @@ class TypecheckA2B {
         }
     }
 
-    private def evalConstExpr(expr: Expression): Int = {
+    protected def evalConstExpr(expr: Expression): Int = {
         def checkIntFun(op: String) {
             EnvA2B.operators.get(op) match {
                 case Some(OFunc(_, Types.int)) =>
@@ -147,7 +147,8 @@ class TypecheckA2B {
         }
     }
 
-    private def processDeclarations(decl: Declarations, env: EnvA2B): EnvA2B = {
+    protected def processDeclarations(decl: Declarations,
+            env: EnvA2B): EnvA2B = {
         var newEnv = env
 
         for (td <- decl.types) {
@@ -168,13 +169,13 @@ class TypecheckA2B {
     }
 
     // Convert parsed TypeValue to OType.
-    private def typeValue(tv: TypeValue, env: EnvA2B): OType = tv match {
+    protected def typeValue(tv: TypeValue, env: EnvA2B): OType = tv match {
         case id @ Id(_) =>
             getType(id, env)
     }
 
     /** Reads type from environment. */
-    private def getType(id: Id, env: EnvA2B) = env.getType(id.text) match {
+    protected def getType(id: Id, env: EnvA2B) = env.getType(id.text) match {
         case Some(t) => t
         case None =>
             throw new TypeError(id, "Invalid type: " + id.text)
