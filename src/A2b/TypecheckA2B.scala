@@ -26,7 +26,7 @@ case class TypeError(location: SourceLocation, msg: String) extends Exception
 
 class TypecheckA2B {
     def process(module: Module) {
-        val env = processDeclarations(module.decl, Env.initialEnv)
+        val env = processDeclarations(module.decl, EnvA2B.initialEnv)
         processStatements(module.statements)
     }
 
@@ -86,7 +86,7 @@ class TypecheckA2B {
 
     private def evalConstExpr(expr: Expression): Int = {
         def checkIntFun(op: String) {
-            Env.operators.get(op) match {
+            EnvA2B.operators.get(op) match {
                 case Some(OFunc(_, Types.int)) =>
                     // OK
                 case _ =>
@@ -147,7 +147,7 @@ class TypecheckA2B {
         }
     }
 
-    private def processDeclarations(decl: Declarations, env: Env): Env = {
+    private def processDeclarations(decl: Declarations, env: EnvA2B): EnvA2B = {
         var newEnv = env
 
         for (td <- decl.types) {
@@ -168,13 +168,13 @@ class TypecheckA2B {
     }
 
     // Convert parsed TypeValue to OType.
-    private def typeValue(tv: TypeValue, env: Env): OType = tv match {
+    private def typeValue(tv: TypeValue, env: EnvA2B): OType = tv match {
         case id @ Id(_) =>
             getType(id, env)
     }
 
     /** Reads type from environment. */
-    private def getType(id: Id, env: Env) = env.getType(id.text) match {
+    private def getType(id: Id, env: EnvA2B) = env.getType(id.text) match {
         case Some(t) => t
         case None =>
             throw new TypeError(id, "Invalid type: " + id.text)
@@ -182,7 +182,7 @@ class TypecheckA2B {
 
     private def processExpr(expr: Expression): OType = {
         def processFunCall(op: String, args: List[Expression]) = {
-            Env.operators.get(op) match {
+            EnvA2B.operators.get(op) match {
                 case Some(OFunc(aTypes, rType)) =>
                     for ((a, t) <- args.zip(aTypes)) {
                         val aType = processExpr(a)
@@ -220,9 +220,9 @@ class TypecheckA2B {
     }
 }
 
-class Env(parent: Env, types: Map[String, OType]) {
+class EnvA2B(parent: EnvA2B, types: Map[String, OType]) {
     def addType(name: String, typeVal: OType) =
-        new Env(this, Map(name -> typeVal))
+        new EnvA2B(this, Map(name -> typeVal))
 
     def getType(name: String): Option[OType] =
         if (types.contains(name))
@@ -233,7 +233,7 @@ class Env(parent: Env, types: Map[String, OType]) {
     override def toString = types.toString + " ==> " + parent
 }
 
-object Env {
+object EnvA2B {
     import Types._
 
     def proc(name: String, params: OType*) =
@@ -279,7 +279,7 @@ object Env {
     EnvA1.FALSE.exprType = bool
 
     def initialEnv =
-        new Env(null, preTypes) {
+        new EnvA2B(null, preTypes) {
             override def getType(name: String) = preTypes.get(name)
             override def toString = "()"
         }
