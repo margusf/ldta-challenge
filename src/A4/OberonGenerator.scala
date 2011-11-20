@@ -14,7 +14,7 @@ class OberonGenerator(destDir: String)
     }
 }
 
-object OberonMain extends MainBase {
+object OberonMainA4 extends MainBase {
     def main(argv: Array[String]) {
         parseOptions(argv)
         val grammar = new ast.OberonGrammar()
