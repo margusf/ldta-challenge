@@ -238,7 +238,7 @@ object EnvA2B {
     import Types._
 
     def proc(name: String, params: OType*) =
-        (name, (null, OProc(params.map((_, false)))))
+        (name, (null, OProc(params.map((_, ProcParamType.byValue)))))
 
     def fun(name: String, ret: OType, params: OType*) =
         (name -> OFunc(params, ret))

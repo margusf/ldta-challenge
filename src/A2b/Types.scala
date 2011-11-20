@@ -32,7 +32,14 @@ case class OFunc(args: Seq[OType], ret: OType) extends OType with ONonData {
     def assignableFrom(other: OType) = true
 }
 
-case class OProc(args: Seq[(OType, Boolean)]) extends OType with ONonData {
+object ProcParamType extends Enumeration {
+    type Type = Value
+
+    val byValue, byRef = Value
+}
+
+case class OProc(args: Seq[(OType, ProcParamType.Type)])
+        extends OType with ONonData {
     def assignableFrom(other: OType) = true
 }
 
