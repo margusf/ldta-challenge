@@ -44,7 +44,7 @@ class TypecheckA3 extends TypecheckA2B {
 
                             if (paramConst == ProcParamType.byRef) {
                                 a match {
-                                    case id @ Id(_) if id.constVal == None =>
+                                    case id @ Id(_) if id.ref.asInstanceOf[Id].constVal == None =>
                                         // OK, can be passed as VAR
                                         ()
                                     case _ =>
