@@ -168,10 +168,14 @@ class EnvA2A(parent: EnvA2A,
 object EnvA2A {
     import IdType._
 
+    val Write = Id("Write")
+    val WriteLn = Id("WriteLn")
+    val Read = Id("Read")
+
     val preDefs = Map(
-        "Write" -> (Id("Write"), Proc),
-        "WriteLn" -> (Id("WriteLn"), Proc),
-        "Read" -> (Id("Read"), Proc),
+        "Write" -> (Write, Proc),
+        "WriteLn" -> (WriteLn, Proc),
+        "Read" -> (Read, Proc),
         "TRUE" -> (EnvA1.TRUE, Const),
         "FALSE" -> (EnvA1.FALSE, Const)
     )

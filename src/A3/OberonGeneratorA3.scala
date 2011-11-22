@@ -36,7 +36,7 @@ object OberonMainA3 extends MainBase {
                             println("line: " + msg.startLine +
                                     "  " + msg.message)
                         case None =>
-                            TypecheckA2B.process(grammar.tree) match {
+                            TypecheckA3.process(grammar.tree) match {
                                 case Some(msg) =>
                                     println("line: " + msg.startLine +
                                             "  " + msg.message)

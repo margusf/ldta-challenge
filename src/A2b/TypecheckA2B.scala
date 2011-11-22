@@ -181,7 +181,7 @@ class TypecheckA2B {
             throw new TypeError(id, "Invalid type: " + id.text)
     }
 
-    private def processExpr(expr: Expression): OType = {
+    protected def processExpr(expr: Expression): OType = {
         def processFunCall(op: String, args: List[Expression]) = {
             EnvA2B.operators.get(op) match {
                 case Some(OFunc(aTypes, rType)) =>
@@ -212,7 +212,7 @@ class TypecheckA2B {
         retType
     }
 
-    private def checkType(expected: OType, received: OType,
+    protected def checkType(expected: OType, received: OType,
                           loc: SourceLocation) {
         if (!expected.assignableFrom(received)) {
             throw new TypeError(loc,
@@ -242,12 +242,6 @@ object EnvA2B {
 
     def fun(name: String, ret: OType, params: OType*) =
         (name -> OFunc(params, ret))
-
-    val predefs = Map[String, Tuple2[CommonNode, OType]](
-        proc("Write", any),
-        proc("WriteLn"),
-        proc("Read", any)
-    )
 
     val operators = Map[String, OType](
         fun("U~", bool, bool),

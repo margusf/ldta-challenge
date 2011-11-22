@@ -9,6 +9,10 @@ import ast._
 import ee.cyber.simplicitas.{CommonNode, SourceLocation, SourceMessage}
 
 object TypecheckA3 {
+    EnvA2A.Write.exprType = OProc(List((Types.int, ProcParamType.byValue)))
+    EnvA2A.WriteLn.exprType = OProc(Nil)
+    EnvA2A.Read.exprType = OProc(List((Types.int, ProcParamType.byRef)))
+
     def process(module: Module): Option[SourceMessage] = {
         try {
             val checker = new TypecheckA3
@@ -26,9 +30,22 @@ class TypecheckA3 extends TypecheckA2B {
     override def processStatement(stm: Statement) {
         stm match {
             case ProcedureCall(name, args) =>
-                // TODO: process procedure call
-//                env.checkProc(name)
-//                args.foreach(processExpr(_, env))
+                val proc = name.ref.asInstanceOf[Id]
+                proc.exprType match {
+                    case OProc(params) =>
+                        if (args.length != params.length) {
+                            throw new TypeError(name,
+                                "Invalid parameter count: " + args.length +
+                                        " instead of " + params.length)
+                        }
+                        for (((paramType, paramConst), a) <- params.zip(args)) {
+                            val argType = processExpr(a)
+                            checkType(paramType, argType, a)
+                        }
+                    case _ =>
+                        throw new TypeError(name,
+                            "Not a procedure: " + name.text)
+                }
             case other =>
                 super.processStatement(other)
         }
@@ -63,27 +80,20 @@ class TypecheckA3 extends TypecheckA2B {
     }
 
     def processProcedureDecl(pd: ProcedureDecl, env: EnvA2B) {
-        // TODO: process parameters.
+        val paramTypes = new ArrayBuffer[(OType, ProcParamType.Type)]
         for (fp <- pd.params;
                 if fp ne null;
                 id <- fp.ids.ids) {
-//            id.byRef = fp.pVar ne null
-//            if (fp.pVar ne null)
-//                println("by ref variable: " + id.text)
+            id.byRef = fp.pVar ne null
             val paramType = typeValue(fp.pType, env)
-
-            // ...
+            paramTypes += ((paramType,
+                    if (id.byRef) ProcParamType.byRef
+                    else ProcParamType.byValue))
         }
+        pd.name.exprType = OProc(paramTypes.toList)
+
         processDeclarations(pd.decl, env)
 
         processStatements(pd.body)
-
-//        pd.name.exprType = T
-    }
-
-    // TODO: add stuff
-    override def typeValue(tv: TypeValue, env: EnvA2B): OType = tv match {
-        case id @ Id(_) =>
-            getType(id, env)
     }
 }

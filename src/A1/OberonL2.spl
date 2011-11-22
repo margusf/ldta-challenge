@@ -127,8 +127,10 @@ terminal Id {
     var ref: CommonNode = null
     // If this is constant, then what is its value?
     var constVal: Option[Int] = None
-//    var byRef: Boolean = false
-//    def isByRef = byRef || ((ref ne null) && (ref.asInstanceOf[Id].byRef))
+
+    // Used for "VAR" parameters.
+    var byRef: Boolean = false
+    def isByRef = byRef || ((ref ne null) && (ref.asInstanceOf[Id].byRef))
     } : ('a'..'z'|'A'..'Z') ('a'..'z'|'A'..'Z'|'0'..'9')*;
 
 hidden terminal MlComment: NestedComment;
