@@ -41,6 +41,17 @@ class TypecheckA3 extends TypecheckA2B {
                         for (((paramType, paramConst), a) <- params.zip(args)) {
                             val argType = processExpr(a)
                             checkType(paramType, argType, a)
+
+                            if (paramConst == ProcParamType.byRef) {
+                                a match {
+                                    case id @ Id(_) if id.constVal == None =>
+                                        // OK, can be passed as VAR
+                                        ()
+                                    case _ =>
+                                        throw new TypeError(a,
+                                            "Cannot be passed as var: " + a)
+                                }
+                            }
                         }
                     case _ =>
                         throw new TypeError(name,
@@ -86,6 +97,7 @@ class TypecheckA3 extends TypecheckA2B {
                 id <- fp.ids.ids) {
             id.byRef = fp.pVar ne null
             val paramType = typeValue(fp.pType, env)
+            id.exprType = paramType
             paramTypes += ((paramType,
                     if (id.byRef) ProcParamType.byRef
                     else ProcParamType.byValue))
