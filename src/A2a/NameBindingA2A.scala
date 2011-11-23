@@ -3,7 +3,9 @@ package ee.cyber.simplicitas.oberonexample
 import ast._
 import ee.cyber.simplicitas.SourceMessage
 
-object NameBindingA2A extends NameBindingA1 {
+object NameBindingA2A extends NameBindingA2A
+
+class NameBindingA2A extends NameBindingA1 {
     override def initialEnv = EnvA2A.initialEnv
 
     override def process(module: Module): Option[SourceMessage] = {

@@ -27,7 +27,7 @@ object OberonMainA4 extends MainBase {
                     println("parse failed")
                     logErrors(arg, otherErrors)
                 } else {
-                    NameBindingA2A.process(grammar.tree) match {
+                    NameBindingA4.process(grammar.tree) match {
                         case Some(msg) =>
                             println("line: " + msg.startLine +
                                     "  " + msg.message)
