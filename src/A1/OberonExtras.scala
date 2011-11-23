@@ -44,18 +44,7 @@ object UnaryOp extends Enumeration {
     val Neg = Value("-")
     val Not = Value("~")
 }
-
-case class ArrayAccess(array: Expression, index: Expression)
-        extends Expression {
-    def childrenNames = Array("array", "index")
-}
-
-case class RecordAccess(record: Expression, field: Id)
-        extends Expression {
-    def childrenNames = Array("record", "field")
-}
-
-object OberonExtras {
+class OberonExtras {
     type WithText = {
         def text: String
     }
@@ -84,3 +73,5 @@ object OberonExtras {
             ops.map((op: WithText) => BinaryOp.withName(op.text)))
     }
 }
+
+object OberonExtras extends OberonExtras

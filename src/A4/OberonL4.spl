@@ -3,7 +3,7 @@ grammar ee.cyber.simplicitas.oberonexample.ast.Oberon;
 import "../A2a/OberonL3.spl";
 
 scalaheader {
-import OberonExtras._
+import OberonExtrasA4._
 }
 
 // We need to copy the first rule of the grammar.
@@ -13,3 +13,25 @@ Module:
         ("BEGIN"
             statements=StatementSequence)?
     "END" name2=Id ".";
+
+// Additional type definitions
+option TypeValue:
+    Id
+    | RecordType
+    | ArrayType;
+
+RecordType: "RECORD" fields=FieldList (";" fields=FieldList)* "END";
+FieldList: ids=IdentList ":" idType=TypeValue;
+ArrayType: "ARRAY" size=SimpleExpr "OF" baseType=TypeValue;
+
+// Additional options in selectors
+option Lhs returns Expression:
+    Id  // This is necessary to make Id inherit from Expression
+    | SelectorExpr;
+
+SelectorExpr
+    returns Expression {makeSelector(id, selectors)}
+    : id=Id selectors=SelectorPart+;
+option SelectorPart: RecordSelector | ArraySelector;
+RecordSelector: "." Id;
+ArraySelector: "[" index=SimpleExpr "]";
