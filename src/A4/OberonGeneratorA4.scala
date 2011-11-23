@@ -32,7 +32,7 @@ object OberonMainA4 extends MainBase {
                             println("line: " + msg.startLine +
                                     "  " + msg.message)
                         case None =>
-                            TypecheckA3.process(grammar.tree) match {
+                            TypecheckA4.process(grammar.tree) match {
                                 case Some(msg) =>
                                     println("line: " + msg.startLine +
                                             "  " + msg.message)

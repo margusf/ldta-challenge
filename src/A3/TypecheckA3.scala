@@ -1,7 +1,3 @@
-/*
- * // Copyright (c) 2010 Cybernetica AS / STACC
- */
-
 package ee.cyber.simplicitas.oberonexample
 
 import collection.mutable.ArrayBuffer
