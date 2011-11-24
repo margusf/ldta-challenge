@@ -41,7 +41,7 @@ class TypecheckA2B {
         checkType(Types.bool, exprType, expr)
     }
 
-    private def checkInteger(expr: Expression) {
+    protected def checkInteger(expr: Expression) {
         val exprType = processExpr(expr)
         checkType(Types.int, exprType, expr)
     }
@@ -197,7 +197,7 @@ class TypecheckA2B {
         }
 
         val retType = expr match {
-            case id @ Id(name) =>
+            case id @ Id(_) =>
                 id.ref.asInstanceOf[Id].exprType.asInstanceOf[OType]
             case Binary(op, left, right) =>
                 processFunCall(op.toString, List(left, right))

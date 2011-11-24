@@ -32,19 +32,47 @@ class TypecheckA4 extends TypecheckA3 {
             case RecordType(fields) =>
                 ORecord(fields.flatMap(doField(env)))
             case ArrayType(expr, base) =>
+                val index = evalConstExpr(expr)
+                if (index < 0) {
+                    throw new TypeError(expr, "Invalid array size: " + index)
+                }
                 OArray(typeValue(base, env))
             case _ =>
                 super.typeValue(tv, env)
         }
 
     override protected def processExpr(expr: Expression): OType = {
+        def arrayBase(t: OType) = t match {
+            case OArray(base) =>
+                base
+            case _ =>
+                throw new TypeError(expr, "Not an array: " + t)
+        }
+
+        def recordField(r: OType, f: String) = r match {
+            case ORecord(fields) =>
+                fields.find(_.name == f) match {
+                    case Some(OField(_, fType)) => fType
+                    case None =>
+                        throw new TypeError(expr, "Unknown field: " + f)
+                }
+            case _ =>
+                throw new TypeError(expr, "Not a record: " + r)
+        }
+
         val retType = expr match {
+            case ArrayAccess(id @ Id(_), index) =>
+                checkInteger(index)
+                arrayBase(id.ref.asInstanceOf[Id].exprType.asInstanceOf[OType])
             case ArrayAccess(array, index) =>
-                // TODO
-                Types.int
-            case RecordAccess(record, field) =>
-                // TODO
-                Types.int
+                checkInteger(index)
+                arrayBase(processExpr(array))
+            case RecordAccess(id @ Id(_), Id(field)) =>
+                recordField(
+                    id.ref.asInstanceOf[Id].exprType.asInstanceOf[OType],
+                    field)
+            case RecordAccess(record, Id(field)) =>
+                recordField(processExpr(record), field)
             case _ =>
                 super.processExpr(expr)
         }

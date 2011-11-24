@@ -20,7 +20,7 @@ option TypeValue:
     | RecordType
     | ArrayType;
 
-RecordType: "RECORD" fields=FieldList (";" fields=FieldList)* "END";
+RecordType: "RECORD" (fields=FieldList (";" fields=FieldList?)*)? "END";
 FieldList: ids=IdentList ":" idType=TypeValue;
 ArrayType: "ARRAY" size=CompExpr "OF" baseType=TypeValue;
 
