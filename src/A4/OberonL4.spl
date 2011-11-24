@@ -34,4 +34,4 @@ SelectorExpr
     : id=Id selectors=SelectorPart+;
 option SelectorPart: RecordSelector | ArraySelector;
 RecordSelector: "." Id;
-ArraySelector: "[" index=SimpleExpr "]";
+ArraySelector: "[" index=CompExpr "]";
