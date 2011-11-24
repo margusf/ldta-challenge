@@ -4,32 +4,46 @@ import ast._
 import ee.cyber.simplicitas.SourceMessage
 
 object NameBindingA4 extends NameBindingA2A {
-//    def doField(env: Env)(f: FieldList) =
-//        f.ids.ids.map(
-//            (id: Id) => OField(id.text, typeValue(f.idType, env)))
-//
-//    // Convert parsed TypeValue to OType.
-//    def typeValue(tv: TypeValue, env: Env): OType = tv match {
-//        case id @ Id(_) =>
-//            getType(id, env)
-//        case RecordType(fields) =>
-//            ORecord(fields.flatMap(doField(env)))
-//        case ArrayType(expr, base) =>
-//            OArray(typeValue(base, env))
-//    }
-
     override def checkType(tv: TypeValue, env: EnvBase) {
         tv match {
             case id @ Id(name) =>
                 env.checkType(id)
             case RecordType(fields) =>
-                // TODO: check that all the Ids are unique.
                 for (f <- fields) {
                     checkType(f.idType, env)
                 }
+                checkDuplicates(
+                    for (f <- fields; id <- f.ids.ids)
+                        yield id)
             case ArrayType(expr, base) =>
-                // TODO: typecheck expr
+                processExpr(expr, env)
                 checkType(base, env)
+        }
+    }
+
+    override def processExpr(expr: Expression, env: EnvBase) {
+        expr match {
+            case ArrayAccess(array, index) =>
+                processExpr(array, env)
+                processExpr(index, env)
+            case RecordAccess(record, field) =>
+                processExpr(record, env)
+                // TODO: check field name?
+            case _ =>
+                super.processExpr(expr, env)
+        }
+    }
+
+    override def processStatement(stm: Statement, env: EnvBase) {
+        stm match {
+            case Assignment(lhs @ RecordAccess(_, _), rhs) =>
+                processExpr(lhs, env)
+                processExpr(rhs, env)
+            case Assignment(lhs @ ArrayAccess(_, _), rhs) =>
+                processExpr(lhs, env)
+                processExpr(rhs, env)
+            case _ =>
+                super.processStatement(stm, env)
         }
     }
 }
