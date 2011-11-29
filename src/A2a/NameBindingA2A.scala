@@ -35,14 +35,14 @@ class NameBindingA2A extends NameBindingA1 {
         // subEnv is used for checking nested procedures.
         var subEnv = env.asInstanceOf[EnvA2A]
 
-        for (td <- decl.types) {
-            checkType(td, subEnv)
-            subEnv = subEnv.addType(td.name)
-        }
-
         for (cd <- decl.consts) {
             val cType = processExpr(cd.expr, subEnv)
             subEnv = subEnv.addConst(cd.name)
+        }
+
+        for (td <- decl.types) {
+            checkType(td, subEnv)
+            subEnv = subEnv.addType(td.name)
         }
 
         for (vd <- decl.vars) {

@@ -64,14 +64,14 @@ class TypecheckA3 extends TypecheckA2B {
 
         var newEnv = env
 
-        for (td <- decl.types) {
-            newEnv = newEnv.addType(td.name.text, typeValue(td.tValue, newEnv))
-        }
-
         for (cd <- decl.consts) {
             val cv = evalConstExpr(cd.expr)
             cd.name.exprType = Types.int
             cd.name.constVal = Some(cv)
+        }
+
+        for (td <- decl.types) {
+            newEnv = newEnv.addType(td.name.text, typeValue(td.tValue, newEnv))
         }
 
         for (vd <- decl.vars; id <- vd.vars.ids) {
