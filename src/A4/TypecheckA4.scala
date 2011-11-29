@@ -46,6 +46,16 @@ class TypecheckA4 extends TypecheckA3 {
         case _ => super.canBeLhs(expr)
     }
 
+    override def canBeProcParam(t: TypeValue) = t match {
+        case RecordType(_) | ArrayType(_, _) => false
+        case _ => super.canBeProcParam(t)
+    }
+
+    override def canBeByValParam(t: OType) = t match {
+        case ORecord(_) | OArray(_) => false
+        case _ => super.canBeByValParam(t)
+    }
+
     override protected def processExpr(expr: Expression): OType = {
         def arrayBase(t: OType) = t match {
             case OArray(base) =>

@@ -89,6 +89,10 @@ class TypecheckA3 extends TypecheckA2B {
         newEnv
     }
 
+    def canBeProcParam(t: TypeValue) = true
+
+    def canBeByValParam(t: OType) = true
+
     def processProcedureDecl(pd: ProcedureDecl, env: EnvA2B) {
         val paramTypes = new ArrayBuffer[(OType, ProcParamType.Type)]
         for (fp <- pd.params;
@@ -100,6 +104,12 @@ class TypecheckA3 extends TypecheckA2B {
             paramTypes += ((paramType,
                     if (id.byRef) ProcParamType.byRef
                     else ProcParamType.byValue))
+
+            if (!canBeProcParam(fp.pType) ||
+                    (!id.byRef && !canBeByValParam(paramType))) {
+                throw new TypeError(fp.pType,
+                    "Cannot be used as procedure parameter: " + fp.pType)
+            }
         }
         pd.name.exprType = OProc(paramTypes.toList)
 
