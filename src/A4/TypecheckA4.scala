@@ -32,11 +32,11 @@ class TypecheckA4 extends TypecheckA3 {
             case RecordType(fields) =>
                 ORecord(fields.flatMap(doField(env)))
             case ArrayType(expr, base) =>
-                val index = evalConstExpr(expr)
-                if (index < 0) {
-                    throw new TypeError(expr, "Invalid array size: " + index)
+                val size = evalConstExpr(expr)
+                if (size < 0) {
+                    throw new TypeError(expr, "Invalid array size: " + size)
                 }
-                OArray(typeValue(base, env))
+                OArray(typeValue(base, env), size)
             case _ =>
                 super.typeValue(tv, env)
         }
@@ -52,19 +52,25 @@ class TypecheckA4 extends TypecheckA3 {
     }
 
     override def canBeByValParam(t: OType) = t match {
-        case ORecord(_) | OArray(_) => false
+        case ORecord(_) | OArray(_, _) => false
         case _ => super.canBeByValParam(t)
     }
 
     override protected def processExpr(expr: Expression): OType = {
-        def arrayBase(t: OType) = t match {
-            case OArray(base) =>
+        def doArray(t: OType, index: Expression) = t match {
+            case arrType @ OArray(base, size) =>
+                tryEvalConstExpr(index) match {
+                    case Some(i) if ((i < 0) || (i >= size)) =>
+                        throw new TypeError(index, "Invalid array index: " + i)
+                    case _ =>
+                        ()
+                }
                 base
             case _ =>
                 throw new TypeError(expr, "Not an array: " + t)
         }
 
-        def recordField(r: OType, f: String) = r match {
+        def doRecord(r: OType, f: String) = r match {
             case ORecord(fields) =>
                 fields.find(_.name == f) match {
                     case Some(OField(_, fType)) => fType
@@ -78,16 +84,18 @@ class TypecheckA4 extends TypecheckA3 {
         val retType = expr match {
             case ArrayAccess(id @ Id(_), index) =>
                 checkInteger(index)
-                arrayBase(id.ref.asInstanceOf[Id].exprType.asInstanceOf[OType])
+                doArray(
+                    id.ref.asInstanceOf[Id].exprType.asInstanceOf[OType],
+                    index)
             case ArrayAccess(array, index) =>
                 checkInteger(index)
-                arrayBase(processExpr(array))
+                doArray(processExpr(array), index)
             case RecordAccess(id @ Id(_), Id(field)) =>
-                recordField(
+                doRecord(
                     id.ref.asInstanceOf[Id].exprType.asInstanceOf[OType],
                     field)
             case RecordAccess(record, Id(field)) =>
-                recordField(processExpr(record), field)
+                doRecord(processExpr(record), field)
             case _ =>
                 super.processExpr(expr)
         }

@@ -43,9 +43,9 @@ case class OProc(args: Seq[(OType, ProcParamType.Type)])
     def assignableFrom(other: OType) = true
 }
 
-case class OArray(base: OType) extends OType {
+case class OArray(base: OType, size: Int) extends OType {
     def assignableFrom(other: OType) = other match {
-        case OArray(otherBase) =>
+        case OArray(otherBase, _) =>
             base.assignableFrom(otherBase)
         case _ =>
             false

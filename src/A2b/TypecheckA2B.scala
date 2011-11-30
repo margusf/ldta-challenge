@@ -84,7 +84,7 @@ class TypecheckA2B {
         }
     }
 
-    protected def evalConstExpr(expr: Expression): Int = {
+    protected def tryEvalConstExpr(expr: Expression): Option[Int] = {
         def checkIntFun(op: String) {
             EnvA2B.operators.get(op) match {
                 case Some(OFunc(_, Types.int)) =>
@@ -133,19 +133,29 @@ class TypecheckA2B {
                     case None => // Not a constant.
                         throw new TypeError(id, "Not a constant: " + name)
                     case Some(cv) =>
-                        cv
+                        Some(cv)
                 }
             case Binary(op, left, right) =>
-                evalBinary(op.toString,
-                    evalConstExpr(left), evalConstExpr(right))
+                (tryEvalConstExpr(left), tryEvalConstExpr(right)) match {
+                    case (Some(l), Some(r)) =>
+                        Some(evalBinary(op.toString, l, r))
+                    case _ => None
+                }
             case Unary(op, arg) =>
-                evalUnary(op.toString, evalConstExpr(arg))
+                tryEvalConstExpr(arg).map(evalUnary(op.toString, _))
             case NumberLit(v) =>
-                v.toInt
+                Some(v.toInt)
             case _ =>
-                throw new IllegalArgumentException(expr.toString)
+                None
         }
     }
+
+    protected def evalConstExpr(expr: Expression): Int =
+        tryEvalConstExpr(expr) match {
+            case Some(value) => value
+            case None =>
+                throw new IllegalArgumentException(expr.toString)
+        }
 
     protected def processDeclarations(decl: Declarations,
             env: EnvA2B): EnvA2B = {
