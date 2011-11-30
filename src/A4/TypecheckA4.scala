@@ -42,8 +42,10 @@ class TypecheckA4 extends TypecheckA3 {
         }
 
     override def canBeLhs(expr: Expression) = expr match {
-        case ArrayAccess(_, _) | RecordAccess(_, _) => true
+        // Composites cannot be assigned to.
         case _ if expr.exprType.isInstanceOf[OComposite] => false
+        // There are no constant arrays or records
+        case ArrayAccess(_, _) | RecordAccess(_, _) => true
         case _ => super.canBeLhs(expr)
     }
 

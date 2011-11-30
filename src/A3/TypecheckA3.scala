@@ -23,14 +23,6 @@ object TypecheckA3 {
 }
 
 class TypecheckA3 extends TypecheckA2B {
-    def canBeLhs(expr: Expression) = expr match {
-        case id @ Id(_) if id.ref.asInstanceOf[Id].constVal == None =>
-            true
-        case _ =>
-            false
-    }
-
-
     override def processStatement(stm: Statement) {
         stm match {
             case ProcedureCall(name, args) =>
@@ -47,7 +39,7 @@ class TypecheckA3 extends TypecheckA2B {
                             checkType(paramType, argType, a)
 
                             if (paramConst == ProcParamType.byRef &&
-                                    !canBeLhs(a)) {
+                                    tryEvalConstExpr(a) != None) {
                                 throw new TypeError(a,
                                     "Cannot be passed as var: " + a)
                             }

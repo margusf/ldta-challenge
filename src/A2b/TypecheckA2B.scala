@@ -46,12 +46,22 @@ class TypecheckA2B {
         checkType(Types.int, exprType, expr)
     }
 
+    def canBeLhs(expr: Expression) = expr match {
+        case id @ Id(_) if id.ref.asInstanceOf[Id].constVal == None =>
+            true
+        case _ =>
+            false
+    }
+
     protected def processStatement(stm: Statement) {
         stm match {
             case Assignment(left, right) =>
                 val leftType = processExpr(left)
                 val rightType = processExpr(right)
                 checkType(leftType, rightType, right)
+                if (!canBeLhs(left)) {
+                    throw new TypeError(left, "Cannot be used as LHS: " + left)
+                }
             case IfStatement(cond, ifStmt, elseStmt) =>
                 cond.foreach(checkBoolean)
                 ifStmt.foreach(processStatements)
