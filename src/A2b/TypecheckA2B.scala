@@ -129,12 +129,7 @@ class TypecheckA2B {
                 val ref = if (id.ref eq null) id else  id.ref.asInstanceOf[Id]
                 checkType(Types.int, ref.exprType.asInstanceOf[OType], expr)
 
-                ref.constVal match {
-                    case None => // Not a constant.
-                        throw new TypeError(id, "Not a constant: " + name)
-                    case Some(cv) =>
-                        Some(cv)
-                }
+                ref.constVal
             case Binary(op, left, right) =>
                 (tryEvalConstExpr(left), tryEvalConstExpr(right)) match {
                     case (Some(l), Some(r)) =>
@@ -154,7 +149,7 @@ class TypecheckA2B {
         tryEvalConstExpr(expr) match {
             case Some(value) => value
             case None =>
-                throw new IllegalArgumentException(expr.toString)
+                throw new TypeError(expr, "Not a constant: " + expr)
         }
 
     protected def processDeclarations(decl: Declarations,
