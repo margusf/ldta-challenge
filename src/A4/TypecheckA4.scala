@@ -49,6 +49,12 @@ class TypecheckA4 extends TypecheckA3 {
         case _ => super.canBeLhs(expr)
     }
 
+    override def canBeByVarArg(expr: Expression) = expr match {
+        // Array and record access is also allowed.
+        case ArrayAccess(_, _) | RecordAccess(_, _) => true
+        case _ => super.canBeLhs(expr)
+    }
+
     override def canBeProcParam(t: TypeValue) = t match {
         // Explicitly given types cannot be given as procedure parameters.
         case RecordType(_) | ArrayType(_, _) => false
