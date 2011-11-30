@@ -43,7 +43,10 @@ case class OProc(args: Seq[(OType, ProcParamType.Type)])
     def assignableFrom(other: OType) = true
 }
 
-case class OArray(base: OType, size: Int) extends OType {
+// Base class for compostite types (records, arrays)
+trait OComposite extends OType
+
+case class OArray(base: OType, size: Int) extends OComposite {
     def assignableFrom(other: OType) = other match {
         case OArray(otherBase, _) =>
             base.assignableFrom(otherBase)
@@ -52,7 +55,7 @@ case class OArray(base: OType, size: Int) extends OType {
     }
 }
 
-case class ORecord(fields: Seq[OField]) extends OType {
+case class ORecord(fields: Seq[OField]) extends OComposite {
     private def fieldAssignable(f: (OField, OField)) = {
         val (my, other) = f
         my.name == other.name && my.fType.assignableFrom(other.fType)
