@@ -137,9 +137,11 @@ class TypecheckA2B {
         expr match {
             case id @ Id(name) =>
                 val ref = if (id.ref eq null) id else  id.ref.asInstanceOf[Id]
-                checkType(Types.int, ref.exprType.asInstanceOf[OType], expr)
-
-                ref.constVal
+                if (Types.int.assignableFrom(
+                        ref.exprType.asInstanceOf[OType]))
+                    ref.constVal
+                else
+                    None
             case Binary(op, left, right) =>
                 (tryEvalConstExpr(left), tryEvalConstExpr(right)) match {
                     case (Some(l), Some(r)) =>
