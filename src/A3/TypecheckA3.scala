@@ -46,6 +46,12 @@ class TypecheckA3 extends TypecheckA2B {
                             val argType = processExpr(a)
                             checkType(paramType, argType, a)
 
+                            // Oberon uses nominal typing.
+                            if (argType ne paramType) {
+                                throw new TypeError(a,
+                                        "Composite types must have same names.")
+                            }
+
                             if (paramConst == ProcParamType.byRef &&
                                     !canBeByVarArg(a)) {
                                 throw new TypeError(a,
