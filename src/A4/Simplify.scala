@@ -140,16 +140,11 @@ class Simplify(module: Module) {
 
     def getType(id: Id) = {
         val parent = (if (id.ref eq null) id else id.ref).parent
+//        println("getType(" + id.text + "), parent = " + parent)
 
         parent match {
             case ConstantDef(_, _, expr) =>
-                expr.exprType match {
-                    case OInt() => Id("INTEGER")
-                    case OBool() => Id("BOOLEAN")
-                    case _ =>
-                        throw new Exception("Invalid type: " +
-                            expr.exprType)
-                }
+                Id("INTEGER")
             case idList @ IdentList(_) =>
                 idList.parent match {
                     case VarDef(_, vt) => vt
@@ -185,7 +180,9 @@ class Simplify(module: Module) {
             val subCtx = new Ctx(ctx.globals, proc.name.text)
             doProcedures(subCtx, proc.decl.procedures)
             val bodyCtx = new Ctx(ctx.globals, proc.name.text)
-            proc.body.walkTree(processChild(bodyCtx))
+            if (proc.body ne null) {
+                proc.body.walkTree(processChild(bodyCtx))
+            }
 
             val myVars = getIds(proc.decl) ++ getIds(proc.params) ++
                     bodyCtx.newVars.flatMap(_.vars.ids)
