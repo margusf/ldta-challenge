@@ -221,6 +221,7 @@ object PrettyPrintOberon {
             case Binary(op, left, right) =>
                 wrapIfNeeded(left, op) :+: op.toString :+:
                         wrapIfNeeded(right, op)
+            // TODO: add support for records and arrays.
             case _ => text("expr")
         }
     }
