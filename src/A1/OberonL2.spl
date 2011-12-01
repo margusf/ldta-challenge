@@ -15,7 +15,7 @@ StatementSequence: (stmt=Statement (";" stmt=Statement?)*)?;
 
 // note: this only exists so that we can add type to expression.
 option Expression
-    {var exprType: Any = null}
+    {var exprType: AnyRef = null}
     : Id;
 
 ConstantDef: name=Id EqOp expr=CompExpr ";";

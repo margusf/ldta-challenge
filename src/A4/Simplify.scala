@@ -165,7 +165,8 @@ class Simplify(module: Module) {
 
     private def processChild(ctx: Ctx)(child: CommonNode) {
         child match {
-            case id: Id if (!id.exprType.isInstanceOf[ONonData]) =>
+            case id: Id if (id.exprType ne null) &&
+                    !id.exprType.isInstanceOf[ONonData] =>
                 ctx.freeVars += id
             case id: Id =>
             case s: StatementSequence =>
