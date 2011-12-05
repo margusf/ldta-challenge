@@ -20,20 +20,22 @@ class Lift(module: Module) {
 
     def apply() {
         module.decl.procedures.foreach(doProcedure(null))
-
-        module.walkTree(fixProcedureCall)
-
         module.decl.procedures = topLevel.toList
+        module.walkTree(fixProcedureCall)
     }
 
     private def doProcedure(prefix: String)(proc: ProcedureDecl) {
         val myNewName = newLiftedName(prefix, proc.name.text)
-        proc.name.text = myNewName
-        addToTop(proc)
 
         proc.decl.procedures.foreach(doProcedure(myNewName))
         // All the child procedures are removed.
         proc.decl.procedures = Nil
+
+        // Add main procedure after children. This preserves the scopes.
+        proc.name.text = myNewName
+        proc.name2.text = myNewName
+        addToTop(proc)
+
     }
 
     private def addToTop(proc: ProcedureDecl) {
