@@ -110,7 +110,7 @@ object PrettyPrintOberon {
                     prettyPrint(start) :+: "TO" :+:
                     prettyPrint(end) :+:
                     (if (step ne null)
-                        "STEP" :+: prettyPrint(step)
+                        "BY" :+: prettyPrint(step)
                     else
                         empty) :+:
                     "DO" :#:
