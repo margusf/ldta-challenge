@@ -63,7 +63,6 @@ class Lift(module: Module) {
         node match {
             case call @ ProcedureCall(name, _) =>
                 val original = name.ref.asInstanceOf[Id]
-                println("Changing call: " + name.text + " -> " + original.text)
                 name.text = original.text
             case _ =>
                 ()
