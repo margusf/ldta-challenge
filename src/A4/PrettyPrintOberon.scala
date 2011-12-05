@@ -221,7 +221,10 @@ object PrettyPrintOberon {
             case Binary(op, left, right) =>
                 wrapIfNeeded(left, op) :+: op.toString :+:
                         wrapIfNeeded(right, op)
-            // TODO: add support for records and arrays.
+            case RecordAccess(rec, field) =>
+                prettyPrint(rec) :: "." :: text(field.text)
+            case ArrayAccess(arr, index) =>
+                prettyPrint(arr) :: brackets(prettyPrint(index))
             case _ => text("expr")
         }
     }
