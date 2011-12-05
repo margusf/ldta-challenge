@@ -65,7 +65,7 @@ object PrettyPrintOberon {
 //            semicolon :: (if (withLineBreak) lineBreak else space))
 
     private def doElsif(elsif: (Expression, StatementSequence)): Doc =
-        "ELSIF" :+: prettyPrint(elsif._1) :#:
+        "ELSIF" :+: prettyPrint(elsif._1) :+: "THEN" :#:
             prettyPrint(elsif._2)
 
     private def doCaseClause(clause: CaseClause): Doc = {
