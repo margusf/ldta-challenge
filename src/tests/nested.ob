@@ -1,0 +1,27 @@
+MODULE foo;	
+	VAR
+		f: INTEGER;
+	(* Just to be mean... *)
+	PROCEDURE Test2Inner1;
+	END Test2Inner1;
+	PROCEDURE Test2;
+		PROCEDURE Inner1;
+			PROCEDURE Inner2;
+				PROCEDURE Inner3;
+				BEGIN
+					CASE f OF
+						1: Write(1)
+					END
+				END Inner3;
+			BEGIN
+				Inner3
+			END Inner2;
+		BEGIN
+			Inner2
+		END Inner1;
+	BEGIN
+		Inner1
+	END Test2;
+BEGIN
+	Test2;
+END foo.

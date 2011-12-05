@@ -17,8 +17,8 @@ object OberonMainA4 extends MainBase {
     }
 
     def generate(fileName: String, tree: Module) {
-        val simplified = Simplify.simplify(tree)
-        outputFile(simplified, fileName, "_lifted.ob",
+        Lift.lift(tree)
+        outputFile(tree, fileName, "_lifted.ob",
                 PrettyPrintOberon.prettyPrint)
     }
 

@@ -20,6 +20,7 @@ MODULE Simple;
 					foo := yy
 				END
 			END;
+			globInt := 666;
 			Write(z);
 			Write(o)
 		END Inner;
