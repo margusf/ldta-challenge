@@ -18,6 +18,7 @@ class Lift(module: Module) {
     val topLevel = ArrayBuffer[ProcedureDecl]()
     val topIds = collection.mutable.Set[String]()
 
+    // TODO: also lift types!
     def apply() {
         module.decl.procedures.foreach(doProcedure(null))
         module.decl.procedures = topLevel.toList
