@@ -111,7 +111,7 @@ object Codegen {
             // Assume that the LHS part is an expression that can be used
             // as LHS.
             gen.Assign(generateExpr(lhs), generateExpr(right))
-        case ProcedureCall(Id(name), args) =>
+        case ProcedureCall(nameId @ Id(name), args) =>
             gen.FunCall(name,
                 if (args eq null)
                     List.empty

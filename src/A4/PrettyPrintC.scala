@@ -32,6 +32,9 @@ void Write(int x) {
 void Read(int *x) {
     scanf("%d", x);
 }
+
+int TRUE = 1;
+int FALSE = 0;
 """ :#:
         vcat(module.globals.map(prettyPrint)) :#:
         vcat(module.procedures.map(prettyPrint))
@@ -43,7 +46,11 @@ void Read(int *x) {
         val args = cd.args.map(
             (arg: Arg) => prettyPrint(arg.name, arg.argType))
 
-        "void" :+: cd.name :: parens(withCommas(args)) :+: "{" :#:
+        "void" :+: cd.name ::
+                parens(
+                    if (args.isEmpty) "void"
+                    else withCommas(args)) :+:
+                "{" :#:
             indent(vcat(cd.body.map(prettyPrint))) :#:
         text("}")
     }
