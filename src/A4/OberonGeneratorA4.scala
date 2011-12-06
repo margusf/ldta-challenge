@@ -5,14 +5,14 @@ import ast.Module
 import java.io.{FileWriter, File, Writer}
 
 object OberonMainA4 extends MainBase {
-    def outputFile(tree: Module, baseFile: String, suffix: String,
-            transform: (Module, Writer) => Unit) {
+    def outputFile[Tree](tree: Tree, baseFile: String, suffix: String,
+            transform: (Tree, Writer) => Unit) {
         val fileName = baseFile.replaceAll("\\.ob$", suffix)
         val writer = new FileWriter(fileName, false)
         try {
-          transform(tree, writer)
+            transform(tree, writer)
         } finally {
-          writer.close()
+            writer.close()
         }
     }
 
@@ -20,6 +20,13 @@ object OberonMainA4 extends MainBase {
         Lift.lift(tree)
         outputFile(tree, fileName, "_lifted.ob",
                 PrettyPrintOberon.prettyPrint)
+
+        // Simplify the case statements
+        Simplify.simplify(tree)
+        val cTree = Codegen.generate(tree)
+        outputFile(cTree, fileName, ".c",
+                PrettyPrintC.prettyPrint)
+
     }
 
     def logErrors(fileName: String, errors: Seq[SourceMessage]) {

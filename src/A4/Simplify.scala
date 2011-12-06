@@ -8,86 +8,40 @@ import ee.cyber.simplicitas.{CommonNode, LiteralNode}
 // * Brings inner procedures to top level
 // * Replaces case statements with series of if statements
 object Simplify {
-    def simplify(module: Module): Module = {
+    def simplify(module: Module) {
         val simpl = new Simplify(module)
         simpl()
     }
 }
 
 class Simplify(module: Module) {
-    // List of top-level procedures (will be filled when procedure
-    // declarations are flattened)
-    val topLevel = ArrayBuffer[ProcedureDecl]()
     // For generating synthetic variable names.
     var currentId = 0
-    // Mapping from procedure names to list of additional parameters
-    // to the procedure
-    val extraParams = collection.mutable.Map[Id, List[Id]]()
 
-    def apply(): Module = {
-        val ctx = new Ctx(getIds(module.decl), null)
-        // As all the top-level variables are visible to procedures,
-        // there is no need to actually process the ctx.freeVars
-        doProcedures(ctx, module.decl.procedures)
+    type VarList = ArrayBuffer[Id]
+
+    private def varDefs(lst: VarList) =
+        lst.map(
+            (id: Id) =>
+                VarDef(IdentList(List(id)), Id("INTEGER"))
+        ).toList
+
+    def apply() {
+        module.decl.procedures.foreach(doProcedure)
+
+        val newVars = new VarList()
+
         if (module.statements ne null) {
-            module.statements.walkTree(processChild(ctx))
+            module.statements.walkTree(processChild(newVars))
         }
 
-        module.walkTree(fixProcedureCall)
-        Module(module.name1,
-            Declarations(
-                module.decl.consts,
-                module.decl.types,
-                module.decl.vars ++ ctx.newVars,
-                topLevel.toList),
-            module.statements,
-            module.name2)
+        module.decl.vars ++= varDefs(newVars)
     }
 
-    private def getIds(decl: Declarations) = {
-        val consts = decl.consts.map(_.name)
-        val vars = decl.vars.flatMap(_.vars.ids)
-
-        (consts ++ vars).toSet
-    }
-
-    private def getIds(params: List[FormalParam]) =
-        if (params eq null)
-            Set.empty
-        else
-            params.flatMap(_.ids.ids).toSet
-
-    private def fixProcedureCall(node: CommonNode) {
-        node match {
-            case call @ ProcedureCall(name, args) =>
-                val key = name.ref.asInstanceOf[Id]
-                if (extraParams.contains(key)) {
-                    if (args eq null) {
-                        call.args = Nil
-                    }
-                    call.args ++= extraParams(key)
-                }
-            case _ =>
-                ()
-        }
-    }
-
-    private class Ctx(val globals: Set[Id], val parent: String) {
-        /** Variables introduced by transformations within statements. */
-        val newVars = ArrayBuffer[VarDef]()
-        /** Free variables that are used by this procedure. */
-        var freeVars = collection.mutable.Set[Id]()
-
-        def getFullName(lastPart: String) =
-            if (parent eq null)
-                lastPart
-            else
-                parent + "_" + lastPart
-    }
-
-    private def doStatementSequence(ctx: Ctx, stmt: StatementSequence) {
+    private def doStatementSequence(varList: VarList, stmt: StatementSequence) {
         if ((stmt ne null) && (stmt.stmt ne null)) {
-            stmt.stmt = stmt.stmt.foldRight[List[Statement]](Nil)(doStmt(ctx))
+            stmt.stmt =
+                    stmt.stmt.foldRight[List[Statement]](Nil)(doStmt(varList))
         }
     }
 
@@ -108,18 +62,14 @@ class Simplify(module: Module) {
         (expr, clause.stmt)
     }
 
-    private def doStmt(ctx: Ctx)(stmt: Statement, old: List[Statement]):
-            List[Statement] = {
+    private def doStmt(varList: VarList)(stmt: Statement, old: List[Statement]):
+            List[Statement] =
         stmt match {
             case CaseStatement(expr, clauses, elseClause) =>
                 // Artificial variable for case expression
                 val exprVar = Id(newId)
                 exprVar.exprType = Types.int
                 exprVar.parent = expr.parent
-
-                val exprDef = VarDef(
-                    IdentList(List(exprVar)),
-                    Id("INTEGER"))
 
                 val ifClauses = clauses.map(caseClause(exprVar))
                 val ifConds = ifClauses.map(_._1)
@@ -129,92 +79,33 @@ class Simplify(module: Module) {
                     ifConds,
                     ifStatements,
                     elseClause)
-                ctx.newVars += exprDef
+                varList += exprVar
+
                 Assignment(newId(exprVar), expr) :: ifStmt :: old
             case _ =>
                 // No direct transformation needed. The children were already
                 // transformed.
                 stmt :: old
         }
-    }
 
-    def getType(id: Id) = {
-        val parent = (if (id.ref eq null) id else id.ref).parent
-//        println("getType(" + id.text + "), parent = " + parent)
-
-        parent match {
-            case ConstantDef(_, _, expr) =>
-                Id("INTEGER")
-            case idList @ IdentList(_) =>
-                idList.parent match {
-                    case VarDef(_, vt) => vt
-                    case FormalParam(_, _, pt) => pt
-                    case _ => throw new Exception("Invalid parent: " +
-                            idList.parent)
-                }
-            case _ =>
-                throw new Exception("Invalid parent for " + id.text +
-                        ": " + parent)
-        }
-    }
-
-    private def processChild(ctx: Ctx)(child: CommonNode) {
+    private def processChild(varList: VarList)(child: CommonNode) {
         child match {
-            case id: Id if (id.exprType ne null) &&
-                    !id.exprType.isInstanceOf[ONonData] =>
-                ctx.freeVars += id
-            case id: Id =>
             case s: StatementSequence =>
-                doStatementSequence(ctx, s)
+                doStatementSequence(varList, s)
             case _ =>
                 // Do nothing
         }
     }
 
-    private def doProcedures(ctx: Ctx, procList: List[ProcedureDecl]) {
-        for (proc <- procList) {
-            // For flattening, change the name, but leave the Id object
-            // unchanged.
-            proc.name.text = ctx.getFullName(proc.name.text)
+    private def doProcedure(proc: ProcedureDecl) {
+        proc.decl.procedures.foreach(doProcedure)
 
-            val subCtx = new Ctx(ctx.globals, proc.name.text)
-            doProcedures(subCtx, proc.decl.procedures)
-            val bodyCtx = new Ctx(ctx.globals, proc.name.text)
-            if (proc.body ne null) {
-                proc.body.walkTree(processChild(bodyCtx))
-            }
-
-            val myVars = getIds(proc.decl) ++ getIds(proc.params) ++
-                    bodyCtx.newVars.flatMap(_.vars.ids)
-            val deltaVars = bodyCtx.freeVars ++ subCtx.freeVars --
-                    myVars -- preDefs
-            val deltaVarList = deltaVars.toList
-
-            ctx.freeVars ++= deltaVars
-
-            val newParams = deltaVarList.map((id: Id) =>
-                FormalParam(
-                    (if (id.isByRef)
-                        LiteralNode("VAR")
-                    else
-                        null),
-                    IdentList(List(id)), // xxx: ideally we should make copy and update refs
-                    getType(id)))
-
-            extraParams(proc.name) = deltaVarList
-
-            topLevel += ProcedureDecl(
-                    proc.name,
-                    (if (proc.params eq null) Nil else proc.params) ++
-                            newParams,
-                    Declarations(
-                            proc.decl.consts,
-                            proc.decl.types,
-                            proc.decl.vars ++ bodyCtx.newVars,
-                            Nil),
-                    proc.body,
-                    proc.name2)
+        val newVars = new VarList()
+        if (proc.body ne null) {
+            proc.body.walkTree(processChild(newVars))
         }
+
+        proc.decl.vars ++= varDefs(newVars)
     }
 
     private def newId = {
@@ -229,6 +120,4 @@ class Simplify(module: Module) {
         ret.byRef = old.byRef
         ret
     }
-
-    private val preDefs = EnvA2A.preDefs.keys.map(Id(_))
 }
