@@ -26,7 +26,7 @@ void WriteLn(void) {
 }
 
 void Write(int x) {
-    printf("%d", x);
+    printf(" %d", x);
 }
 
 void Read(int *x) {
