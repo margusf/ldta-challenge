@@ -18,7 +18,21 @@ object PrettyPrintC {
 
     def prettyPrint(module: Module): Doc = {
         "// Module " :: module.name :#:
-        "#include <stdio.h>" :#:
+        """
+#include <stdio.h>
+
+void WriteLn(void) {
+    printf("\n");
+}
+
+void Write(int x) {
+    printf("%d", x);
+}
+
+void Read(int *x) {
+    scanf("%d", x);
+}
+""" :#:
         vcat(module.globals.map(prettyPrint)) :#:
         vcat(module.procedures.map(prettyPrint))
     }
@@ -124,13 +138,7 @@ object PrettyPrintC {
                     text(name)
             case NumberLit(value) => text(value.toString)
             case Unary(op, arg) =>
-                val argPP = arg match {
-                    case Binary(_, _, _) =>
-                        parens(prettyPrint(arg))
-                    case _ =>
-                         prettyPrint(arg)
-                }
-                op.toString :: argPP
+                op.toString :: parens(prettyPrint(arg))
             case Binary(op, left, right) =>
                 wrapIfNeeded(left, op) :+: op.toString :+:
                         wrapIfNeeded(right, op)
