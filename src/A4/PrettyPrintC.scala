@@ -33,11 +33,12 @@ void Read(int *x) {
     scanf("%d", x);
 }
 
-int TRUE = 1;
-int FALSE = 0;
+#define TRUE 1
+#define FALSE 0
 """ :#:
         vcat(module.globals.map(prettyPrint)) :#:
-        vcat(module.procedures.map(prettyPrint))
+        vcat(module.procedures.map(prettyPrint)) :#:
+        prettyPrintMain(module.statements)
     }
 
     private def indent(doc: Doc) = Doc.indent(4, doc)
@@ -52,6 +53,12 @@ int FALSE = 0;
                     else withCommas(args)) :+:
                 "{" :#:
             indent(vcat(cd.body.map(prettyPrint))) :#:
+        text("}")
+    }
+
+    private def prettyPrintMain(stmt: Stmt) = {
+        "int main(int _argc, char **_argv) {" :#:
+            indent(prettyPrint(stmt) :#: text("return 0;")) :#:
         text("}")
     }
 
@@ -86,8 +93,6 @@ int FALSE = 0;
                     prettyPrintFp(post)) :+: "{" :#:
                 indent(prettyPrint(body)) :#:
             text("}")
-        case ConstDecl(name, cType, value) =>
-            prettyPrint(name, cType) :+: "=" :+: prettyPrint(value) :: semi
         case VarDecl(name, vType) =>
             prettyPrint(name, vType) :: semi
         case Typedef(name, tType) =>

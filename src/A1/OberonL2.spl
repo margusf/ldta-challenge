@@ -124,7 +124,7 @@ CaseConstant: begin=SimpleExpr (".." end=SimpleExpr)?;
 
 terminal Id {
     // What does this identifier point to?
-    var ref: CommonNode = null
+    var ref: Id = null
     // If this is constant, then what is its value?
     var constVal: Option[Int] = None
 

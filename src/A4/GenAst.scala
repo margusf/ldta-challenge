@@ -8,9 +8,9 @@ abstract class Gen {
 
 case class Module(name: String,
                   globals: List[Stmt],
-                  procedures: List[ProcDecl])
+                  procedures: List[ProcDecl],
+                  statements: Stmt)
 
-case class ConstDecl(name: String, cType: OType, value: Expr) extends Stmt
 case class VarDecl(name: String, vType: OType) extends Stmt
 case class ProcDecl(name: String,
                     args: List[Arg],

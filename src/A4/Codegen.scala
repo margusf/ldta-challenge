@@ -18,24 +18,11 @@ object Codegen {
     private def generateModule(module: Module): gen.Module = {
         var procedures = module.decl.procedures.map(generateProcedure)
 
-        val stmt = generateStatements(module.statements)
-        if (stmt != gen.Nop()) {
-            if (module.decl.procedures.exists(_.name == "main")) {
-                throw new Exception(
-                    "Procedure main exists and module body is not empty")
-            } else {
-                procedures :+=
-                        gen.ProcDecl("main",
-                        List(gen.Arg("argc", ORef("int")),
-                            gen.Arg("argv", ORef("char **"))),
-                        List(stmt))
-            }
-        }
-
         gen.Module(
                 module.name1.text,
                 generateDecl(module.decl).toList,
-                procedures)
+                procedures,
+                generateStatements(module.statements))
     }
 
     private def convertField(f: FieldList) =
@@ -57,15 +44,6 @@ object Codegen {
 
     private def generateDecl(decl: Declarations): Seq[gen.Stmt] = {
         val body = new ArrayBuffer[gen.Stmt]
-
-        for (constDecl <- decl.consts) {
-            // Calculating the constant type is actually meaningless as
-            // both int and bool constants amount to "int" in C.
-            body += gen.ConstDecl(
-                constDecl.name.text,
-                ORef("int"),
-                generateExpr(constDecl.expr))
-        }
 
         for (tDecl <- decl.types) {
             body += gen.Typedef(tDecl.name.text, convertType(tDecl.tValue))
@@ -152,6 +130,8 @@ object Codegen {
     }
 
     def generateExpr(expr: Expression): gen.Expr = expr match {
+        case id @ Id(name) if (id.ref ne null) && (id.ref.constVal != None) =>
+            gen.NumberLit(id.ref.constVal.get)
         case id @ Id(name) =>
             gen.Id(name, id.isByRef)
         case Binary(op, left, right) =>
