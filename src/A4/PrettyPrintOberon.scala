@@ -51,7 +51,7 @@ object PrettyPrintOberon {
     }
 
     private def prettyPrint(statements: StatementSequence): Doc =
-        if (statements ne null)
+        if (!isEmpty(statements))
            indent(
                punctuate(semi :: line,
                    statements.stmt.map(prettyPrint))) ::
@@ -174,6 +174,9 @@ object PrettyPrintOberon {
         indent(body) :: line
     }
 
+    private def isEmpty(seq: StatementSequence) =
+        (seq eq null) || (seq.stmt eq null) || seq.stmt.isEmpty
+
     private def prettyPrint(proc: ProcedureDecl): Doc = {
         def print(fp: FormalParam): Doc = {
             (if (fp.pVar ne null) text("VAR") :: space else empty) ::
@@ -188,7 +191,7 @@ object PrettyPrintOberon {
 
         "PROCEDURE" :+: proc.name :: params :: semi :: line ::
         prettyPrint(proc.decl) ::
-        (if (proc.body ne null)
+        (if (!isEmpty(proc.body))
             "BEGIN" :#:
                     prettyPrint(proc.body)
         else
