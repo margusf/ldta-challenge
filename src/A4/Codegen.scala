@@ -58,14 +58,6 @@ object Codegen {
     private def generateDecl(decl: Declarations): Seq[gen.Stmt] = {
         val body = new ArrayBuffer[gen.Stmt]
 
-        for (tDecl <- decl.types) {
-            body += gen.Typedef(tDecl.name.text, convertType(tDecl.tValue))
-        }
-
-        for (varDecl <- decl.vars; id <- varDecl.vars.ids) {
-            body += gen.VarDecl(id.text, convertType(varDecl.varType))
-        }
-
         for (constDecl <- decl.consts) {
             // Calculating the constant type is actually meaningless as
             // both int and bool constants amount to "int" in C.
@@ -73,6 +65,14 @@ object Codegen {
                 constDecl.name.text,
                 ORef("int"),
                 generateExpr(constDecl.expr))
+        }
+
+        for (tDecl <- decl.types) {
+            body += gen.Typedef(tDecl.name.text, convertType(tDecl.tValue))
+        }
+
+        for (varDecl <- decl.vars; id <- varDecl.vars.ids) {
+            body += gen.VarDecl(id.text, convertType(varDecl.varType))
         }
 
         body
