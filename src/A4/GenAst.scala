@@ -39,3 +39,4 @@ case class Binary(op: String, left: Expr, right: Expr) extends Expr
 case class Unary(op: String, arg: Expr) extends Expr
 case class ArrayAccess(array: Expr, index: Expr) extends Expr
 case class RecordAccess(record: Expr, field: String) extends Expr
+case class AddressOf(base: Expr) extends Expr

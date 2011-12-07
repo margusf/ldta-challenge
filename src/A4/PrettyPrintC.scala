@@ -158,6 +158,8 @@ void Read(int *x) {
                 prettyPrint(rec) :: "." :: text(field)
             case ArrayAccess(array, index) =>
                 prettyPrint(array) :: brackets(prettyPrint(index))
+            case AddressOf(base) =>
+                "&" :: prettyPrint(base)
             case _ => text("expr")
         }
     }
