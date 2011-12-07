@@ -32,9 +32,6 @@ void Write(int x) {
 void Read(int *x) {
     scanf("%d", x);
 }
-
-#define TRUE 1
-#define FALSE 0
 """ :#:
         vcat(module.globals.map(prettyPrint)) :#:
         vcat(module.procedures.map(prettyPrint)) :#:

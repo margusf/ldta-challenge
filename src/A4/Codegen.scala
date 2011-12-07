@@ -142,8 +142,12 @@ object Codegen {
     }
 
     def generateExpr(expr: Expression): gen.Expr = expr match {
-        case id @ Id(name) if (id.ref ne null) && (id.ref.constVal != None) =>
+        case id @ Id(_) if (id.ref ne null) && (id.ref.constVal != None) =>
             gen.NumberLit(id.ref.constVal.get)
+        case id @ Id(_) if id.ref eq EnvA1.TRUE =>
+            gen.NumberLit(1)
+        case id @ Id(_) if id.ref eq EnvA1.FALSE =>
+            gen.NumberLit(0)
         case id @ Id(name) =>
             gen.Id(name, id.isByRef)
         case Binary(op, left, right) =>
