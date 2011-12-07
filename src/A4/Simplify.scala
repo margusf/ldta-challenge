@@ -3,6 +3,7 @@ package ee.cyber.simplicitas.oberonexample
 import collection.mutable.ArrayBuffer
 import ast._
 import ee.cyber.simplicitas.{CommonNode, LiteralNode}
+import java.util.IdentityHashMap
 
 // Simplifies the Oberon program
 // * Brings inner procedures to top level
@@ -23,7 +24,7 @@ class Simplify(module: Module) {
     private def varDefs(lst: VarList) =
         lst.map(
             (id: Id) =>
-                VarDef(IdentList(List(id)), Id("INTEGER"))
+                VarDef(IdentList(List(id)), EnvA1.INTEGER)
         ).toList
 
     def apply() {
@@ -40,15 +41,26 @@ class Simplify(module: Module) {
         module.walkTree(prefixVars)
     }
 
-    private val preDefs = Set(
+    private val preDefs = new IdentityHashMap[Id, Id]()
+
+    val preDefSet = Set[Id](
         EnvA1.TRUE, EnvA1.FALSE,
         EnvA1.INTEGER, EnvA1.BOOLEAN,
         EnvA2A.Read, EnvA2A.Write, EnvA2A.WriteLn)
 
+    println("predefs: " + preDefSet.map((id: Id) => (id, System.identityHashCode(id))))
+
+    for (id <- preDefSet) {
+        preDefs.put(id, id)
+    }
+
     private def prefixVars(node: CommonNode) {
+        println("node: " + System.identityHashCode(node))
         node match {
-            case id @ Id(text) if !preDefs(id) =>
-                println("renaming " + id.text)
+            case id @ Id(text)
+                    if !preDefs.containsKey(id) &&
+                            ((id.ref eq null) || !preDefs.containsKey(id.ref)) =>
+                println("renaming " + text)
                 id.text = "_" + text
             case Id(text) =>
                 println("not renaming " + text)
