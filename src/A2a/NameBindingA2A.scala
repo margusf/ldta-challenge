@@ -50,6 +50,7 @@ class NameBindingA2A extends NameBindingA1 {
         }
 
         var withVars = subEnv.addVars(getVarNames(decl))
+        println("after vardef: " + withVars)
 
         for (proc <- decl.procedures) {
             doProcedure(proc, if (includeVars) withVars else subEnv)

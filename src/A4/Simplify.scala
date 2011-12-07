@@ -36,6 +36,25 @@ class Simplify(module: Module) {
         }
 
         module.decl.vars ++= varDefs(newVars)
+
+        module.walkTree(prefixVars)
+    }
+
+    private val preDefs = Set(
+        EnvA1.TRUE, EnvA1.FALSE,
+        EnvA1.INTEGER, EnvA1.BOOLEAN,
+        EnvA2A.Read, EnvA2A.Write, EnvA2A.WriteLn)
+
+    private def prefixVars(node: CommonNode) {
+        node match {
+            case id @ Id(text) if !preDefs(id) =>
+                println("renaming " + id.text)
+                id.text = "_" + text
+            case Id(text) =>
+                println("not renaming " + text)
+            case _ =>
+                ()
+        }
     }
 
     private def doStatementSequence(varList: VarList, stmt: StatementSequence) {
