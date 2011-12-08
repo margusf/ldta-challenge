@@ -28,7 +28,6 @@ object NameBindingA4 extends NameBindingA2A {
                 processExpr(index, env)
             case RecordAccess(record, field) =>
                 processExpr(record, env)
-                // TODO: check field name?
             case _ =>
                 super.processExpr(expr, env)
         }

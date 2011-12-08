@@ -19,7 +19,6 @@ class Lift(module: Module) {
     val topTypes = ArrayBuffer[TypeDef]()
     val topIds = collection.mutable.Set[String]()
 
-    // TODO: also lift types!
     def apply() {
         module.decl.types.foreach(doType(null))
         module.decl.procedures.foreach(doProcedure(null))

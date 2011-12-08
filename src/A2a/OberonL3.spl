@@ -34,7 +34,6 @@ Declarations:
     (procedures=ProcedureDecl ";")*;
 
 // Add procedure call to statement rule.
-// TODO: should the call already be in L2?
 ProcedureCall:
     proc=Id
         ("(" (args=CompExpr ("," args=CompExpr)*)? ")")?;
