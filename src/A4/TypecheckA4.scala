@@ -23,6 +23,8 @@ object TypecheckA4 {
 }
 
 class TypecheckA4 extends TypecheckA3 {
+    import ConstantEval._
+
     private def doField(env: EnvA2B)(f: FieldList) =
         f.ids.ids.map(
             (id: Id) => OField(id.text, typeValue(f.idType, env)))

@@ -23,6 +23,8 @@ object TypecheckA3 {
 }
 
 class TypecheckA3 extends TypecheckA2B {
+    import ConstantEval._
+
     def canBeByVarArg(expr: Expression) = expr match {
         // Non-const IDs are ok.
         case id @ Id(_) if id.ref.asInstanceOf[Id].constVal == None =>
