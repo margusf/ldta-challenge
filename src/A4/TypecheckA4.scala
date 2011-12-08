@@ -97,14 +97,14 @@ class TypecheckA4 extends TypecheckA3 {
             case ArrayAccess(id @ Id(_), index) =>
                 checkInteger(index)
                 doArray(
-                    id.ref.asInstanceOf[Id].exprType.asInstanceOf[OType],
+                    id.ref.exprType.asInstanceOf[OType],
                     index)
             case ArrayAccess(array, index) =>
                 checkInteger(index)
                 doArray(processExpr(array), index)
             case RecordAccess(id @ Id(_), Id(field)) =>
                 doRecord(
-                    id.ref.asInstanceOf[Id].exprType.asInstanceOf[OType],
+                    id.ref.exprType.asInstanceOf[OType],
                     field)
             case RecordAccess(record, Id(field)) =>
                 doRecord(processExpr(record), field)

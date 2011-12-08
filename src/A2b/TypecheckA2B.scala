@@ -49,7 +49,7 @@ class TypecheckA2B {
     }
 
     def canBeLhs(expr: Expression) = expr match {
-        case id @ Id(_) if id.ref.asInstanceOf[Id].constVal == None =>
+        case id @ Id(_) if id.ref.constVal == None =>
             true
         case _ =>
             false
@@ -147,7 +147,7 @@ class TypecheckA2B {
 
         val retType = expr match {
             case id @ Id(_) =>
-                id.ref.asInstanceOf[Id].exprType.asInstanceOf[OType]
+                id.ref.exprType.asInstanceOf[OType]
             case Binary(op, left, right) =>
                 processFunCall(op.toString, List(left, right))
             case Unary(op, arg) =>

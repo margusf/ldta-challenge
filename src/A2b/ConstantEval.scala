@@ -45,7 +45,7 @@ object ConstantEval {
 
         expr match {
             case id @ Id(name) =>
-                val ref = if (id.ref eq null) id else  id.ref.asInstanceOf[Id]
+                val ref = if (id.ref eq null) id else id.ref
                 if (Types.int.assignableFrom(
                         ref.exprType.asInstanceOf[OType]))
                     ref.constVal

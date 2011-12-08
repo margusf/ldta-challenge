@@ -82,29 +82,9 @@ class Lift(module: Module) {
     }
 
     private def fixReferences(node: CommonNode) {
-//        def fix(id: Id) {
-//            val original = id.ref.asInstanceOf[Id]
-//            if (original ne null) {
-//                println("renaming: " + id.text + " -> " + original.text)
-//                id.text = original.text
-//            } else {
-//                println("No ref: " + id.text)
-//            }
-//        }
-//
         node match {
-//            case call @ ProcedureCall(name, _) =>
-//                fix(name)
-//            case VarDef(_, id @ Id(_)) =>
-//                fix(id)
-//            case TypeDef(_, id @ Id(_)) =>
-//                fix(id)
-//            case FormalParam(_, _, id @ Id(_)) =>
-//                fix(id)
-//            case ArrayType(_, id @ Id(_)) =>
-//                fix(id)
             case id @ Id(_) =>
-                val original = id.ref.asInstanceOf[Id]
+                val original = id.ref
                 if ((original ne null) && (original.text != id.text)) {
                     id.text = original.text
                 }
