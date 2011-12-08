@@ -11,6 +11,8 @@ case class OCArray(base: OType, size: gen.Expr) extends OType {
 
 
 object Codegen {
+    import ConstantEval._
+
     def generate(module: Module): gen.Module = {
         generateModule(module)
     }
@@ -127,15 +129,19 @@ object Codegen {
                 gen.Id(varName, id.isByRef),
                 generateExpr(start))
             val endExpr = generateExpr(end)
-            val cond = gen.Binary("<=", gen.Id(varName, id.isByRef), endExpr)
-            val post = gen.Inc(varName,
-                if (step ne null)
-                    generateExpr(step)
+            val stepVal =
+                if (step eq null)
+                    1
                 else
-                    gen.NumberLit(1))
+                    evalConstExpr(step)
+            val cond = gen.Binary(
+                if (stepVal > 0) "<=" else ">=",
+                gen.Id(varName, id.isByRef),
+                endExpr)
+            val post = gen.Inc(varName, gen.NumberLit(stepVal))
             gen.For(pre, cond, post, generateStatements(body))
-        // Case statement is translated to series of if statements because
-        // C case does not support ranges.
+        // Case statements were translated to if statements in the Simplify
+        // step
         case _ =>
             println("Unknown: " + stmt)
             null
