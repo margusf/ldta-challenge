@@ -48,22 +48,19 @@ class Simplify(module: Module) {
         EnvA1.INTEGER, EnvA1.BOOLEAN,
         EnvA2A.Read, EnvA2A.Write, EnvA2A.WriteLn)
 
-    println("predefs: " + preDefSet.map((id: Id) => (id, System.identityHashCode(id))))
-
     for (id <- preDefSet) {
         preDefs.put(id, id)
     }
 
     private def prefixVars(node: CommonNode) {
-        println("node: " + System.identityHashCode(node))
         node match {
             case id @ Id(text)
                     if !preDefs.containsKey(id) &&
-                            ((id.ref eq null) || !preDefs.containsKey(id.ref)) =>
-                println("renaming " + text)
+                            ((id.ref eq null) ||
+                                    !preDefs.containsKey(id.ref)) =>
                 id.text = "_" + text
             case Id(text) =>
-                println("not renaming " + text)
+                ()
             case _ =>
                 ()
         }

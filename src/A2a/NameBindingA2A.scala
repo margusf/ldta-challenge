@@ -50,7 +50,6 @@ class NameBindingA2A extends NameBindingA1 {
         }
 
         var withVars = subEnv.addVars(getVarNames(decl))
-        println("after vardef: " + withVars)
 
         for (proc <- decl.procedures) {
             doProcedure(proc, if (includeVars) withVars else subEnv)
@@ -120,9 +119,7 @@ class EnvA2A(parent: EnvA2A,
     import IdType._
 
     def addVars(ids: List[Id]) = {
-        val idMap = ids.map((id: Id) =>
-        {println("adding var: " + id + ", " + System.identityHashCode(id))
-            id.text -> (id, Var)}).toMap
+        val idMap = ids.map((id: Id) => id.text -> (id, Var)).toMap
         new EnvA2A(this, idMap, Map.empty)
     }
 
@@ -147,7 +144,6 @@ class EnvA2A(parent: EnvA2A,
     override def checkVar(id: Id, lhs: Boolean) {
         getDef(id) match {
             case (ref, Var) => id.ref = ref
-                println("Bound var to " + id + ", " + System.identityHashCode(ref))
             case (ref, Const) if (!lhs) => id.ref = ref
             case _ =>
                 throw new NameError(id)
@@ -180,8 +176,6 @@ object EnvA2A {
         "TRUE" -> (EnvA1.TRUE, Const),
         "FALSE" -> (EnvA1.FALSE, Const)
     )
-
-    println("read == " + System.identityHashCode(Read))
 
     val initialEnv =
         new EnvA2A(null, Map.empty, Map.empty) {
