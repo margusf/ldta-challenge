@@ -215,7 +215,7 @@ object PrettyPrintOberon {
             case NumberLit(n) => text(n)
             case Unary(op, arg) =>
                 val argPP = arg match {
-                    case Binary(_, _, _) =>
+                    case Binary(_, _, _) | Unary(_, _) =>
                         parens(prettyPrint(arg))
                     case _ =>
                          prettyPrint(arg)
