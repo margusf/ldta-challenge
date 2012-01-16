@@ -39,7 +39,6 @@ option CompOp {def text: String}: EqOp | OtherCompOps;
 terminal EqOp: "=";
 terminal OtherCompOps: "#" | "<" | "<=" | ">" | ">=";
 
-// TODO: fix issue 2869
 option SimpleExpr returns Expression: PosExpr | NegExpr | PlusExpr;
 
 PosExpr
@@ -106,9 +105,6 @@ ForStatement:
             "TO" end=CompExpr ("BY" step=CompExpr)? "DO"
         body=StatementSequence
     "END";
-//option ForDirection: To | DownTo;
-//To: "TO";
-//DownTo: "DOWNTO";
 
 CaseStatement:
     "CASE" expr=CompExpr "OF"
@@ -118,7 +114,7 @@ CaseStatement:
 
 CaseClause:
     items=CaseConstant ("," items=CaseConstant)* ":"
-    stmt=StatementSequence;
+        stmt=StatementSequence;
 
 CaseConstant: begin=SimpleExpr (".." end=SimpleExpr)?;
 
