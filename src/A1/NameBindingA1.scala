@@ -48,17 +48,14 @@ class NameBindingA1 {
                 env.checkVar(varName, true)
                 processExpr(start, env)
                 processExpr(end, env)
-                if (step ne null)
-                    processExpr(step, env)
+                processExpr(step, env)
                 processStatements(body, env)
             case CaseStatement(expr, clauses, elseClause) =>
                 processExpr(expr, env)
                 for (clause <- clauses) {
-                    for (clItem <- clause.items) {
-                        processExpr(clItem.begin, env)
-                        if (clItem.end ne null) {
-                            processExpr(clItem.end, env)
-                        }
+                    for (clauseItem <- clause.items) {
+                        processExpr(clauseItem.begin, env)
+                        processExpr(clauseItem.end, env)
                     }
                     processStatements(clause.stmt, env)
                 }
@@ -136,6 +133,8 @@ class NameBindingA1 {
             case Unary(op, arg) =>
                 processExpr(arg, env)
             case NumberLit(_) =>
+                ()
+            case null =>
                 ()
             case _ =>
                 throw new IllegalArgumentException(expr.toString)
