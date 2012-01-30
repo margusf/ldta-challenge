@@ -9,21 +9,13 @@ object NameBindingA1 extends NameBindingA1
 class NameBindingA1 {
     protected def initialEnv: EnvBase = EnvA1.initialEnv
 
-    def process(module: Module): Option[SourceMessage] = {
-        try {
-            if (module.name1 != module.name2) {
-                throw NameError(module.name2)
-            }
-
-            val env = processDeclarations(module.decl, initialEnv)
-            processStatements(module.statements, env)
-
-            None
-        } catch {
-            case NameError(id: Id) =>
-                Some(new SourceMessage(
-                    "Invalid identifier: " + id.text, SourceMessage.Error, id))
+    def process(module: Module) {
+        if (module.name1 != module.name2) {
+            throw NameError(module.name2)
         }
+
+        val env = processDeclarations(module.decl, initialEnv)
+        processStatements(module.statements, env)
     }
 
     def processStatements(seq: StatementSequence, env: EnvBase) {
@@ -141,8 +133,6 @@ class NameBindingA1 {
         }
     }
 }
-
-case class NameError(id: Id) extends Exception
 
 class EnvA1(parent: EnvA1,
           defs: Map[String, (Id, Boolean)],

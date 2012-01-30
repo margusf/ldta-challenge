@@ -8,21 +8,13 @@ object NameBindingA2A extends NameBindingA2A
 class NameBindingA2A extends NameBindingA1 {
     override def initialEnv = EnvA2A.initialEnv
 
-    override def process(module: Module): Option[SourceMessage] = {
-        try {
-            if (module.name1 != module.name2) {
-                throw NameError(module.name2)
-            }
-
-            val env = processDeclarations(module.decl, initialEnv, true)
-            processStatements(module.statements, env)
-
-            None
-        } catch {
-            case NameError(id: Id) =>
-                Some(new SourceMessage(
-                    "Invalid identifier: " + id.text, SourceMessage.Error, id))
+    override def process(module: Module) {
+        if (module.name1 != module.name2) {
+            throw NameError(module.name2)
         }
+
+        val env = processDeclarations(module.decl, initialEnv, true)
+        processStatements(module.statements, env)
     }
 
     def processDeclarations(decl: Declarations,

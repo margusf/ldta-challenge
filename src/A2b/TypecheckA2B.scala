@@ -8,21 +8,7 @@ import collection.mutable.ArrayBuffer
 import ast._
 import ee.cyber.simplicitas.{CommonNode, SourceLocation, SourceMessage}
 
-object TypecheckA2B {
-    def process(module: Module): Option[SourceMessage] = {
-        try {
-            val checker = new TypecheckA2B
-            checker.process(module)
-            None
-        } catch {
-            case TypeError(loc, msg) =>
-                Some(new SourceMessage(
-                    msg, SourceMessage.Error, loc))
-        }
-    }
-}
-
-case class TypeError(location: SourceLocation, msg: String) extends Exception
+object TypecheckA2B extends TypecheckA2B
 
 class TypecheckA2B {
     import ConstantEval._

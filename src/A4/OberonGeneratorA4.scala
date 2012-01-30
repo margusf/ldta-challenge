@@ -5,6 +5,8 @@ import ast.Module
 import java.io.{FileWriter, File, Writer}
 
 object OberonMainA4 extends MainBase {
+    val grammar = new ast.OberonGrammar()
+
     def outputFile[Tree](tree: Tree, baseFile: String, suffix: String,
             transform: (Tree, Writer) => Unit) {
         val fileName = baseFile.replaceAll("\\.ob$", suffix)
@@ -29,45 +31,18 @@ object OberonMainA4 extends MainBase {
 
     }
 
-    def logErrors(fileName: String, errors: Seq[SourceMessage]) {
-        if (!errors.isEmpty) {
-            val pw = new java.io.PrintWriter(
-                    new java.io.FileWriter("/tmp/oberon-log.txt", true), true)
-            pw.println("\nFile: " + fileName)
-            errors foreach (pw.println)
-            pw.close()
-        }
+    def processFile(file: String) {
+        Errors.parse(grammar, file)
+        OtherChecks.process(grammar.tree)
+        NameBindingA4.process(grammar.tree)
+        TypecheckA4.process(grammar.tree)
+        generate(file, grammar.tree)
     }
 
     def main(argv: Array[String]) {
         parseOptions(argv)
-        val grammar = new ast.OberonGrammar()
         for (arg <- sources) {
-            grammar.parseFile(arg)
-            if (!grammar.errors.isEmpty) {
-                println("parse failed")
-                logErrors(arg, grammar.errors)
-            } else {
-                val otherErrors = OtherChecks.process(grammar.tree)
-                if (!otherErrors.isEmpty) {
-                    println("parse failed")
-                    logErrors(arg, otherErrors)
-                } else {
-                    NameBindingA4.process(grammar.tree) match {
-                        case Some(msg) =>
-                            println("line: " + msg.startLine +
-                                    "  " + msg.message)
-                        case None =>
-                            TypecheckA4.process(grammar.tree) match {
-                                case Some(msg) =>
-                                    println("line: " + msg.startLine +
-                                            "  " + msg.message)
-                                case None =>
-                                    generate(arg, grammar.tree)
-                            }
-                    }
-                }
-            }
+            Errors.handle(() => processFile(arg))
         }
     }
 }
