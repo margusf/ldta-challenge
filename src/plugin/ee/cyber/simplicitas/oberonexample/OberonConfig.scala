@@ -75,7 +75,6 @@ class OberonConfig extends APluginConfig {
         case _ => false
     }
 
-
     override def referenceTarget(node: CommonNode) = node match {
         case id: Id => id.ref
         case _ => null
