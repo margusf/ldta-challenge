@@ -1,4 +1,0 @@
-Invalid tests:
-
-comments.ob -- nested comments should not be requirement.
-cond.ob, while.ob -- semicolon is separator, not terminator
