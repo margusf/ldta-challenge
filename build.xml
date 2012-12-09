@@ -53,7 +53,16 @@
                includeantruntime="false" classpathref="tool-deps" encoding="UTF-8"/>
 
         <!-- create tool jar -->
-        <jar destfile="${target}/oberon0-a1.jar" basedir="${dst1}/classes"/>
+        <jar destfile="${target}/oberon0-a1.jar" basedir="${dst1}/classes" keepcompression="false">
+            <!--archives>
+                <zips>
+                    <fileset dir="${maven.repo.local}" includes="**/*.jar"/>
+                </zips>
+            </archives-->
+            <fileset dir="${basedir}/.m2/repository">
+                <include name="**/*.jar"/>
+            </fileset>
+        </jar>
     </target>
 
     <target name="a2a" depends="tool-deps">
@@ -120,7 +129,7 @@
         <!-- create tool jar -->
         <jar destfile="${target}/oberon0-a3.jar" basedir="${dst3}/classes"/>
     </target>
-	
+
     <target name="a4" depends="tool-deps">
         <!-- generate grammar -->
         <taskdef name="grammar" classpathref="tool-deps"
